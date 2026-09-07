@@ -1,0 +1,28 @@
+﻿# Python
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+
+# Database & Logs
+*.db
+*.sqlite3
+*.log
+
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Environment & IDE
+.env
+.env.*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

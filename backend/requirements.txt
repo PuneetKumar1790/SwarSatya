@@ -1,0 +1,23 @@
+# SwarSatya Backend Dependencies (SIH #26104)
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+websockets==17.1
+python-multipart==0.0.32
+pydantic==2.13.5
+
+# Machine Learning & Speech Models (CPU optimized)
+torch==2.2.2+cpu
+torchaudio==2.2.2+cpu
+transformers==4.45.2
+faster-whisper==1.2.1
+ctranslate2==4.8.2
+
+# Audio Processing & Feature Extraction
+librosa==0.11.0
+soundfile==0.14.0
+scipy==1.17.1
+numpy==1.26.4
+
+# NLP & Risk Modeling
+scikit-learn==1.9.0
+huggingface-hub==0.36.2
