@@ -312,7 +312,7 @@ async def run_demo_audio_stream(room_id: str, scenario: str):
     if len(data.shape) > 1:
         data = np.mean(data, axis=1)
 
-    chunk_size = sr * 3  # 3-second chunks (48,000 samples)
+    chunk_size = sr * 5  # 5-second chunks (80,000 samples at 16kHz)
     total_chunks = int(np.ceil(len(data) / chunk_size))
 
     for i in range(total_chunks):
@@ -321,7 +321,7 @@ async def run_demo_audio_stream(room_id: str, scenario: str):
             break
         await process_audio_chunk(room_id, chunk, chunk_index=i + 1, source_type="demo")
         # Sleep for realistic chunk playback interval
-        await asyncio.sleep(3.0)
+        await asyncio.sleep(5.0)
 
     logger.info(f"Demo Mode '{scenario}' completed for room '{room_id}'.")
     await manager.broadcast(room_id, {

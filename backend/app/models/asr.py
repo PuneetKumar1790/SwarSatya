@@ -3,14 +3,23 @@
 Uses faster-whisper (multilingual int8 on CPU) for low-latency Hindi/English/Hinglish transcription.
 """
 import logging
+import re
 import numpy as np
 from faster_whisper import WhisperModel
 
 logger = logging.getLogger("swarsatya.asr")
 
+# Common Whisper hallucination patterns to filter out
+_HALLUCINATION_RE = re.compile(
+    r'thanks for watching|please subscribe|like and subscribe|'
+    r'see you in the next|bye bye|thank you for listening',
+    re.IGNORECASE
+)
+_REPETITION_RE = re.compile(r'(\b[\w\s\']{3,}\b)(?:\s+\1){2,}')
+
 
 class SpeechRecognizer:
-    def __init__(self, model_size: str = "tiny", device: str = "cpu", compute_type: str = "int8"):
+    def __init__(self, model_size: str = "base", device: str = "cpu", compute_type: str = "int8"):
         self.model_size = model_size
         self.device = device
         self.compute_type = compute_type
@@ -53,34 +62,45 @@ class SpeechRecognizer:
             if audio_chunk.dtype != np.float32:
                 audio_chunk = audio_chunk.astype(np.float32)
 
-            # Check RMS energy - if near silent, don't feed to Whisper
+            # Check RMS energy - if near silent, don't waste model inference
             rms = np.sqrt(np.mean(audio_chunk ** 2))
-            if rms < 0.008:
+            if rms < 0.005:
                 return ""
 
             segments, info = self.model.transcribe(
                 audio_chunk,
-                beam_size=1,
+                beam_size=3,
                 best_of=1,
                 temperature=0.0,
+                language="en",
                 condition_on_previous_text=False,
                 vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=300),
-                no_speech_threshold=0.5,
+                vad_parameters=dict(
+                    min_silence_duration_ms=250,
+                    speech_pad_ms=200
+                ),
+                no_speech_threshold=0.45,
+                log_prob_threshold=-0.8,
                 compression_ratio_threshold=2.2,
-                initial_prompt="Phone call security check. Keywords: police, bank, CBI, OTP, account, transfer, arrest, urgent, credit card, money."
+                initial_prompt=(
+                    "Phone call transcript. Delhi Police, cyber crime, CBI, "
+                    "Inspector, arrest warrant, bank account, OTP, transfer money, "
+                    "Aadhaar card, credit card, immediately, urgent, FIR."
+                )
             )
 
             texts = []
             for seg in segments:
                 t = seg.text.strip()
-                # Skip silent artifacts, dots, and common YouTube Whisper hallucinations
-                if not t or t.startswith("...") or "thanks for watching" in t.lower() or "subscribe" in t.lower():
+                if not t or t.startswith("..."):
                     continue
-                # Suppress repetitive loop patterns (e.g. "I'm going to get a new car...")
-                import re
-                t = re.sub(r'(\b[\w\s\']{3,}\b)(?:\s+\1){2,}', r'\1', t)
-                texts.append(t)
+                # Skip common Whisper hallucinations
+                if _HALLUCINATION_RE.search(t):
+                    continue
+                # Suppress repetitive loop patterns
+                t = _REPETITION_RE.sub(r'\1', t)
+                if t:
+                    texts.append(t)
 
             transcript = " ".join(texts).strip()
             return transcript
@@ -91,3 +111,4 @@ class SpeechRecognizer:
 
 
 speech_recognizer = SpeechRecognizer()
+
