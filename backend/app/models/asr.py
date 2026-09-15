@@ -84,8 +84,10 @@ class SpeechRecognizer:
                 compression_ratio_threshold=2.2,
                 initial_prompt=(
                     "Phone call transcript. Delhi Police, cyber crime, CBI, "
-                    "Inspector, arrest warrant, bank account, OTP, transfer money, "
-                    "Aadhaar card, credit card, immediately, urgent, FIR."
+                    "Inspector Sharma, arrest warrant, bank account, OTP verification code, "
+                    "transfer eighty thousand rupees via UPI immediately, "
+                    "keep this secret, do not tell anyone, customs detained me at the airport, "
+                    "emergency, Aadhaar card, FIR, do not disconnect the call."
                 )
             )
 

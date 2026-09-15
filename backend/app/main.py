@@ -297,10 +297,42 @@ async def process_audio_chunk(room_id: str, audio_np: np.ndarray, chunk_index: i
     await manager.broadcast(room_id, update_msg)
 
 
+def slice_audio_at_pauses(audio: np.ndarray, sr: int, target_sec: float = 4.8) -> list:
+    """Slices audio at natural low-energy/silence points so words are never cut in half."""
+    chunks = []
+    start = 0
+    target_samples = int(target_sec * sr)
+    search_half = int(1.2 * sr)
+
+    while start < len(audio):
+        nominal = start + target_samples
+        if nominal >= len(audio) - int(1.5 * sr):
+            chunks.append(audio[start:])
+            break
+
+        search_start = max(start + int(2.5 * sr), nominal - search_half)
+        search_end = min(len(audio), nominal + search_half)
+
+        # Find minimum RMS energy frame in search range (hop = 50ms)
+        hop = int(0.05 * sr)
+        min_energy = float('inf')
+        best_idx = nominal
+        for i in range(search_start, search_end - hop, hop):
+            e = np.mean(audio[i : i + hop] ** 2)
+            if e < min_energy:
+                min_energy = e
+                best_idx = i
+
+        chunks.append(audio[start:best_idx])
+        start = best_idx
+
+    return chunks
+
+
 async def run_demo_audio_stream(room_id: str, scenario: str):
     """
     Streams a pre-recorded demo audio file chunk-by-chunk through the exact same
-    analysis pipeline at real playback speed.
+    analysis pipeline at real playback speed, sliced cleanly at natural speech pauses.
     """
     wav_file = os.path.join(DEMO_DIR, f"{scenario}.wav")
     if not os.path.exists(wav_file):
@@ -311,17 +343,17 @@ async def run_demo_audio_stream(room_id: str, scenario: str):
     data, sr = sf.read(wav_file)
     if len(data.shape) > 1:
         data = np.mean(data, axis=1)
+    data = data.astype(np.float32)
 
-    chunk_size = sr * 5  # 5-second chunks (80,000 samples at 16kHz)
-    total_chunks = int(np.ceil(len(data) / chunk_size))
+    chunks = slice_audio_at_pauses(data, sr, target_sec=4.8)
 
-    for i in range(total_chunks):
-        chunk = data[i * chunk_size : (i + 1) * chunk_size]
+    for i, chunk in enumerate(chunks):
         if len(chunk) < 8000:
             break
         await process_audio_chunk(room_id, chunk, chunk_index=i + 1, source_type="demo")
-        # Sleep for realistic chunk playback interval
-        await asyncio.sleep(5.0)
+        # Sleep for exact chunk speech duration for natural real-time streaming
+        chunk_sec = len(chunk) / sr
+        await asyncio.sleep(chunk_sec)
 
     logger.info(f"Demo Mode '{scenario}' completed for room '{room_id}'.")
     await manager.broadcast(room_id, {

@@ -21,7 +21,7 @@ SCENARIOS = {
         "synthetic": False
     },
     "cloned_scam": {
-        "text": "Please listen carefully and keep this secret, do not tell anyone! This is an emergency, police and customs have detained me at the airport. You urgently need to share the OTP verification code and transfer eighty thousand rupees via UPI immediately to clear this case. Do not disconnect the call!",
+        "text": "Please listen carefully and keep this secret, do not tell anyone! This is an emergency, police and customs have detained me at the airport. You urgently need to share the OTP verification code. Transfer eighty thousand rupees via UPI immediately to clear this case. Do not disconnect the call!",
         "synthetic": True
     }
 }
