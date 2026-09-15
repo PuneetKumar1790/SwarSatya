@@ -15,7 +15,23 @@ _HALLUCINATION_RE = re.compile(
     r'see you in the next|bye bye|thank you for listening',
     re.IGNORECASE
 )
-_REPETITION_RE = re.compile(r'(\b[\w\s\']{3,}\b)(?:\s+\1){2,}')
+
+
+def clean_whisper_text(text: str) -> str:
+    """Removes meta words like 'transcript' and eliminates repetitive word/phrase loops."""
+    if not text:
+        return ""
+    # 1. Remove literal meta words hallucinated from prompts
+    text = re.sub(r'\btranscript\b', '', text, flags=re.IGNORECASE)
+    # 2. Deduplicate any word repeated with commas, spaces, dots or hyphens
+    text = re.sub(r'\b(\w+)(?:[,\s\.\-]+(?:\1\b))+', r'\1', text, flags=re.IGNORECASE)
+    # 3. Deduplicate multi-word phrase loops (e.g. "hello world, hello world")
+    text = re.sub(r'(\b[\w\s\']{4,}\b)(?:[,\s\.\-]+(?:\1\b))+', r'\1', text, flags=re.IGNORECASE)
+    # 4. Clean up dangling punctuation and spacing
+    text = re.sub(r'\s*,\s*', ', ', text)
+    text = re.sub(r'(?:,\s*){2,}', ', ', text)
+    text = re.sub(r'\s+', ' ', text).strip(' ,.-')
+    return text
 
 
 class SpeechRecognizer:
@@ -83,7 +99,7 @@ class SpeechRecognizer:
                 log_prob_threshold=-0.8,
                 compression_ratio_threshold=2.2,
                 initial_prompt=(
-                    "Phone call transcript. Delhi Police, cyber crime, CBI, "
+                    "Delhi Police, cyber crime division, CBI, "
                     "Inspector Sharma, arrest warrant, bank account, OTP verification code, "
                     "transfer eighty thousand rupees via UPI immediately, "
                     "keep this secret, do not tell anyone, customs detained me at the airport, "
@@ -99,13 +115,12 @@ class SpeechRecognizer:
                 # Skip common Whisper hallucinations
                 if _HALLUCINATION_RE.search(t):
                     continue
-                # Suppress repetitive loop patterns
-                t = _REPETITION_RE.sub(r'\1', t)
-                if t:
-                    texts.append(t)
+                cleaned = clean_whisper_text(t)
+                if cleaned:
+                    texts.append(cleaned)
 
             transcript = " ".join(texts).strip()
-            return transcript
+            return clean_whisper_text(transcript)
 
         except Exception as e:
             logger.error(f"Error during audio transcription: {e}")
