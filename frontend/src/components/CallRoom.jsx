@@ -71,8 +71,8 @@ export default function CallRoom({
       scriptProcessorRef.current = processor;
 
       const targetSampleRate = 16000;
-      const chunkDurationSeconds = 5.0;
-      const samplesPerChunk = targetSampleRate * chunkDurationSeconds; // 80,000 samples
+      const chunkDurationSeconds = 3.0;
+      const samplesPerChunk = targetSampleRate * chunkDurationSeconds; // 48,000 samples
       chunkBufferRef.current = [];
       resamplePhaseRef.current = 0;
 

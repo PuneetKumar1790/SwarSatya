@@ -1,8 +1,12 @@
 import React from 'react';
-import { Activity, Radio, Cpu, ShieldAlert } from 'lucide-react';
+import { Activity, Cpu, ShieldAlert, UserCheck, Waves } from 'lucide-react';
 
 export default function RiskMeter({
   syntheticRisk = 0,
+  spectralRisk = 0,
+  prosodyRisk = 0,
+  speakerSimilarity = 100,
+  contextRisk = 0,
   scamRisk = 0,
   overallRisk = 0,
   threatTier = 'LOW'
@@ -19,17 +23,17 @@ export default function RiskMeter({
   const tierColor = getTierColor(threatTier);
 
   return (
-    <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Activity size={18} color="var(--accent-cyan)" />
-          Real-Time Threat Assessment
+          Unified Voice Threat Telemetry
         </h3>
         <span style={{
           padding: '0.25rem 0.75rem',
           borderRadius: '6px',
-          fontWeight: 700,
-          fontSize: '0.8rem',
+          fontWeight: 800,
+          fontSize: '0.75rem',
           backgroundColor: `${tierColor}20`,
           color: tierColor,
           border: `1px solid ${tierColor}50`
@@ -38,32 +42,31 @@ export default function RiskMeter({
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
         {/* Overall Fused Risk */}
         <div style={{
           background: '#0d1322',
-          border: `1px solid ${tierColor}40`,
+          border: `1px solid ${tierColor}50`,
           borderRadius: '10px',
-          padding: '1.25rem',
+          padding: '1rem',
           textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
+          boxShadow: threatTier === 'CRITICAL' ? '0 0 15px rgba(244, 63, 94, 0.2)' : 'none'
         }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
             Overall Fused Risk
           </div>
           <div style={{
-            fontSize: '2.5rem',
+            fontSize: '2.4rem',
             fontWeight: 800,
             color: tierColor,
             fontFamily: 'JetBrains Mono',
             letterSpacing: '-0.03em'
           }}>
             {Math.round(overallRisk)}
-            <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>/100</span>
+            <span style={{ fontSize: '1rem', fontWeight: 500 }}>/100</span>
           </div>
           <div style={{
-            marginTop: '0.5rem',
+            marginTop: '0.4rem',
             width: '100%',
             height: '6px',
             backgroundColor: '#1f2937',
@@ -74,25 +77,25 @@ export default function RiskMeter({
               width: `${Math.min(100, Math.max(0, overallRisk))}%`,
               height: '100%',
               backgroundColor: tierColor,
-              transition: 'width 0.4s ease'
+              transition: 'width 0.3s ease'
             }} />
           </div>
         </div>
 
-        {/* Synthetic Voice Risk */}
+        {/* Voice Authenticity (Wav2Vec2 + Spectral) */}
         <div style={{
           background: '#0d1322',
           border: '1px solid var(--border-card)',
           borderRadius: '10px',
-          padding: '1.25rem',
+          padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
             <Cpu size={14} color="#06b6d4" />
-            Synthetic Voice (Deepfake)
+            Synthetic Voice (AI)
           </div>
           <div style={{
-            fontSize: '2rem',
+            fontSize: '1.9rem',
             fontWeight: 700,
             color: '#06b6d4',
             fontFamily: 'JetBrains Mono'
@@ -100,7 +103,7 @@ export default function RiskMeter({
             {Math.round(syntheticRisk)}%
           </div>
           <div style={{
-            marginTop: '0.5rem',
+            marginTop: '0.4rem',
             width: '100%',
             height: '6px',
             backgroundColor: '#1f2937',
@@ -111,33 +114,33 @@ export default function RiskMeter({
               width: `${Math.min(100, Math.max(0, syntheticRisk))}%`,
               height: '100%',
               backgroundColor: '#06b6d4',
-              transition: 'width 0.4s ease'
+              transition: 'width 0.3s ease'
             }} />
           </div>
         </div>
 
-        {/* Scam Pattern Risk */}
+        {/* Spectral & Phase Inconsistency */}
         <div style={{
           background: '#0d1322',
           border: '1px solid var(--border-card)',
           borderRadius: '10px',
-          padding: '1.25rem',
+          padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-            <ShieldAlert size={14} color="#f59e0b" />
-            Scam Pattern Signal
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+            <Waves size={14} color="#38bdf8" />
+            Spectral & Phase
           </div>
           <div style={{
-            fontSize: '2rem',
+            fontSize: '1.9rem',
             fontWeight: 700,
-            color: '#f59e0b',
+            color: '#38bdf8',
             fontFamily: 'JetBrains Mono'
           }}>
-            {Math.round(scamRisk)}%
+            {Math.round(spectralRisk)}%
           </div>
           <div style={{
-            marginTop: '0.5rem',
+            marginTop: '0.4rem',
             width: '100%',
             height: '6px',
             backgroundColor: '#1f2937',
@@ -145,10 +148,84 @@ export default function RiskMeter({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${Math.min(100, Math.max(0, scamRisk))}%`,
+              width: `${Math.min(100, Math.max(0, spectralRisk))}%`,
+              height: '100%',
+              backgroundColor: '#38bdf8',
+              transition: 'width 0.3s ease'
+            }} />
+          </div>
+        </div>
+
+        {/* Speaker Biometric Match */}
+        <div style={{
+          background: '#0d1322',
+          border: '1px solid var(--border-card)',
+          borderRadius: '10px',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+            <UserCheck size={14} color={speakerSimilarity >= 60 ? '#10b981' : '#f43f5e'} />
+            Speaker Profile Match
+          </div>
+          <div style={{
+            fontSize: '1.9rem',
+            fontWeight: 700,
+            color: speakerSimilarity >= 60 ? '#10b981' : '#f43f5e',
+            fontFamily: 'JetBrains Mono'
+          }}>
+            {Math.round(speakerSimilarity)}%
+          </div>
+          <div style={{
+            marginTop: '0.4rem',
+            width: '100%',
+            height: '6px',
+            backgroundColor: '#1f2937',
+            borderRadius: '3px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${Math.min(100, Math.max(0, speakerSimilarity))}%`,
+              height: '100%',
+              backgroundColor: speakerSimilarity >= 60 ? '#10b981' : '#f43f5e',
+              transition: 'width 0.3s ease'
+            }} />
+          </div>
+        </div>
+
+        {/* Context & Scam Triggers */}
+        <div style={{
+          background: '#0d1322',
+          border: '1px solid var(--border-card)',
+          borderRadius: '10px',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+            <ShieldAlert size={14} color="#f59e0b" />
+            Scam / Context Stakes
+          </div>
+          <div style={{
+            fontSize: '1.9rem',
+            fontWeight: 700,
+            color: '#f59e0b',
+            fontFamily: 'JetBrains Mono'
+          }}>
+            {Math.round(Math.max(contextRisk, scamRisk))}%
+          </div>
+          <div style={{
+            marginTop: '0.4rem',
+            width: '100%',
+            height: '6px',
+            backgroundColor: '#1f2937',
+            borderRadius: '3px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${Math.min(100, Math.max(0, Math.max(contextRisk, scamRisk)))}%`,
               height: '100%',
               backgroundColor: '#f59e0b',
-              transition: 'width 0.4s ease'
+              transition: 'width 0.3s ease'
             }} />
           </div>
         </div>

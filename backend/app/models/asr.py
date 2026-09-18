@@ -60,19 +60,19 @@ class SpeechRecognizer:
             logger.error(f"Failed to load faster-whisper model: {e}", exc_info=True)
             self.is_loaded = False
 
-    def transcribe_chunk(self, audio_chunk: np.ndarray, sample_rate: int = 16000) -> str:
+    def transcribe_chunk(self, audio_chunk: np.ndarray, sample_rate: int = 16000, language: str = "auto") -> tuple[str, str]:
         """
         Transcribes a 16kHz float32 audio chunk to text.
-        audio_chunk: 1D numpy array of float32 samples.
+        Returns: (transcript_text, detected_language)
         """
         if not self.is_loaded:
             self.load_model()
             if not self.is_loaded:
-                return ""
+                return "", "en"
 
         try:
             if len(audio_chunk) < 8000:
-                return ""
+                return "", "en"
 
             # Ensure float32 format
             if audio_chunk.dtype != np.float32:
@@ -81,14 +81,17 @@ class SpeechRecognizer:
             # Check RMS energy - if near silent, don't waste model inference
             rms = np.sqrt(np.mean(audio_chunk ** 2))
             if rms < 0.005:
-                return ""
+                return "", "en"
+
+            # Target language: None allows auto-detection (Whisper LID)
+            target_lang = None if language in ["auto", "multilingual", None] else language
 
             segments, info = self.model.transcribe(
                 audio_chunk,
                 beam_size=3,
                 best_of=1,
                 temperature=0.0,
-                language="en",
+                language=target_lang,
                 condition_on_previous_text=False,
                 vad_filter=True,
                 vad_parameters=dict(
@@ -99,13 +102,16 @@ class SpeechRecognizer:
                 log_prob_threshold=-0.8,
                 compression_ratio_threshold=2.2,
                 initial_prompt=(
-                    "Delhi Police, cyber crime division, CBI, "
-                    "Inspector Sharma, arrest warrant, bank account, OTP verification code, "
-                    "transfer eighty thousand rupees via UPI immediately, "
-                    "keep this secret, do not tell anyone, customs detained me at the airport, "
-                    "emergency, Aadhaar card, FIR, do not disconnect the call."
+                    "Delhi Police, cyber crime division, CBI, Inspector Sharma, "
+                    "arrest warrant, bank account, OTP verification code, "
+                    "transfer eighty thousand rupees via UPI immediately, paisa transfer, "
+                    "keep this secret, do not tell anyone, kisi ko mat batana, "
+                    "customs detained me at the airport, emergency, Aadhaar card, FIR, "
+                    "khate mein, turant bhejo, problem mein hoon."
                 )
             )
+
+            detected_lang = info.language if info else (target_lang or "en")
 
             texts = []
             for seg in segments:
@@ -120,11 +126,11 @@ class SpeechRecognizer:
                     texts.append(cleaned)
 
             transcript = " ".join(texts).strip()
-            return clean_whisper_text(transcript)
+            return clean_whisper_text(transcript), detected_lang
 
         except Exception as e:
             logger.error(f"Error during audio transcription: {e}")
-            return ""
+            return "", "en"
 
 
 speech_recognizer = SpeechRecognizer()

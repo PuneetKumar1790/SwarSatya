@@ -1,66 +1,166 @@
-"""Risk Fusion Engine (SwarSatya Phase 5 stub / constants).
+"""Unified Dynamic Risk Fusion & Policy Engine (SwarSatya Layer 5).
 
-Fuses Synthetic Voice Risk and Scam Conversation Risk into an Overall Risk score.
-Configurable weights and threat tier mappings.
+Fuses 4 core detection dimensions:
+1. Voice Authenticity Risk (Wav2Vec2 Deepfake Model + Spectral/Phase Artifacts)
+2. Prosodic / Behavioral Anomaly Risk (Pitch Dynamics + Pause/Cadence Jitter)
+3. Speaker Identity Mismatch Risk (Biometric Distance from Enrolled Profile)
+4. Contextual & Social Engineering Risk (Caller Origin + Transaction Stakes + Fraud History)
+5. Conversational Scam Signal Risk (ASR Transcripts + Extortion Patterns)
+
+Supports configurable enterprise risk policies with automated pre-transaction actions.
 """
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple, Any
 
-# Configurable Risk Fusion Weights
-DEFAULT_SYNTHETIC_WEIGHT = 0.50
-DEFAULT_SCAM_WEIGHT = 0.40
-DEFAULT_OTHER_WEIGHT = 0.10
+# Policy Profile Definitions
+POLICY_PROFILES = {
+    "standard_call": {
+        "id": "standard_call",
+        "name": "Standard Communication",
+        "description": "Routine corporate voice communication.",
+        "thresholds": {"caution": 45.0, "high": 70.0, "critical": 85.0},
+        "default_action": "MONITOR"
+    },
+    "high_value_transfer": {
+        "id": "high_value_transfer",
+        "name": "High-Value Financial Transfer (₹ > 5,00,000)",
+        "description": "Sensitive treasury/vendor disbursement requiring pre-action verification.",
+        "thresholds": {"caution": 35.0, "high": 60.0, "critical": 75.0},
+        "default_action": "REQUIRE_SECONDARY_VERIFICATION"
+    },
+    "privileged_access": {
+        "id": "privileged_access",
+        "name": "Privileged Executive Authorization",
+        "description": "Board-level approvals, credentials, or emergency overrides.",
+        "thresholds": {"caution": 30.0, "high": 55.0, "critical": 70.0},
+        "default_action": "MANDATORY_CALLBACK"
+    }
+}
 
-# Threat Tier Definitions
-TIER_LOW = "LOW"
-TIER_CAUTION = "CAUTION"
-TIER_HIGH = "HIGH"
-TIER_CRITICAL = "CRITICAL"
-
-RECOMMENDED_ACTIONS = {
-    TIER_LOW: "Normal conversation. No threat detected.",
-    TIER_CAUTION: "Exercise caution. Suspicious conversational patterns or audio artifacts detected.",
-    TIER_HIGH: "High risk warning: Likely impersonation or financial fraud attempt. Do NOT share OTP, passwords, or initiate money transfers.",
-    TIER_CRITICAL: "CRITICAL ALERT: High probability AI voice clone detected in conjunction with urgent financial extortion. Disconnect the call immediately and contact the person through a verified secondary channel."
+DEFAULT_WEIGHTS = {
+    "synthetic": 0.30,
+    "spectral": 0.15,
+    "prosody": 0.15,
+    "speaker_mismatch": 0.20,
+    "context": 0.10,
+    "scam_rules": 0.10
 }
 
 
-class RiskFusionEngine:
-    def __init__(
-        self,
-        synthetic_weight: float = DEFAULT_SYNTHETIC_WEIGHT,
-        scam_weight: float = DEFAULT_SCAM_WEIGHT,
-        other_weight: float = DEFAULT_OTHER_WEIGHT
-    ):
-        self.synthetic_weight = synthetic_weight
-        self.scam_weight = scam_weight
-        self.other_weight = other_weight
+class UnifiedRiskFusionEngine:
+    def __init__(self, active_policy_id: str = "high_value_transfer"):
+        self.active_policy_id = active_policy_id
+        self.weights = dict(DEFAULT_WEIGHTS)
+        self.policies = dict(POLICY_PROFILES)
+
+    def set_policy(self, policy_id: str, custom_thresholds: Dict[str, float] = None):
+        """Updates active security policy and optional custom thresholds."""
+        if policy_id in self.policies:
+            self.active_policy_id = policy_id
+            if custom_thresholds:
+                self.policies[policy_id]["thresholds"].update(custom_thresholds)
+
+    def set_weights(self, new_weights: Dict[str, float]):
+        """Adjusts fusion weights (normalized)."""
+        self.weights.update(new_weights)
+        total = sum(self.weights.values())
+        if total > 0:
+            for k in self.weights:
+                self.weights[k] /= total
 
     def fuse(
         self,
         synthetic_risk: float,
-        scam_risk: float,
-        other_signals: float = 0.0
-    ) -> Tuple[float, str, str]:
-        """Calculates Overall Risk (0-100), threat tier, and recommended action."""
-        overall = (
-            self.synthetic_weight * synthetic_risk +
-            self.scam_weight * scam_risk +
-            self.other_weight * other_signals
+        spectral_risk: float,
+        prosody_risk: float,
+        speaker_mismatch_risk: float,
+        context_risk: float,
+        scam_risk: float
+    ) -> Dict[str, Any]:
+        """
+        Computes the unified dynamic impersonation risk score and determines
+        the threat tier and required security response.
+        """
+        w = self.weights
+
+        # Multi-layer weighted fusion
+        fused_score = (
+            w["synthetic"] * synthetic_risk +
+            w["spectral"] * spectral_risk +
+            w["prosody"] * prosody_risk +
+            w["speaker_mismatch"] * speaker_mismatch_risk +
+            w["context"] * context_risk +
+            w["scam_rules"] * scam_risk
         )
-        overall = max(0.0, min(100.0, overall))
 
-        if overall < 30.0:
-            tier = TIER_LOW
-        elif overall < 60.0:
-            tier = TIER_CAUTION
-        elif overall < 85.0:
-            tier = TIER_HIGH
+        # Non-linear amplifier: If multiple severe anomalies co-occur, apply critical surge
+        critical_count = sum([
+            synthetic_risk > 70.0,
+            speaker_mismatch_risk > 60.0,
+            context_risk > 60.0,
+            scam_risk > 65.0
+        ])
+        if critical_count >= 2:
+            fused_score = min(100.0, fused_score * 1.18 + 5.0)
+
+        fused_score = max(0.0, min(100.0, round(fused_score, 1)))
+
+        # Determine Tier based on active policy
+        policy = self.policies.get(self.active_policy_id, self.policies["high_value_transfer"])
+        th = policy["thresholds"]
+
+        if fused_score < th["caution"]:
+            tier = "LOW"
+            recommended_action = "ALLOW: Normal voice metrics. No impersonation detected."
+            action_code = "ALLOW"
+            requires_hold = False
+        elif fused_score < th["high"]:
+            tier = "CAUTION"
+            recommended_action = "MONITOR: Subtle voice anomalies or unverified line. Maintain heightened caution."
+            action_code = "WARN"
+            requires_hold = False
+        elif fused_score < th["critical"]:
+            tier = "HIGH"
+            recommended_action = "HOLD TRANSACTION: Voice & identity divergence exceeds safe threshold. Mandatory secondary verification required."
+            action_code = "HOLD_AND_VERIFY"
+            requires_hold = True
         else:
-            tier = TIER_CRITICAL
+            tier = "CRITICAL"
+            recommended_action = "CRITICAL BLOCK: High-probability synthetic impersonation combined with high-value financial extortion. Intercept transaction immediately."
+            action_code = "BLOCK_AND_ESCALATE"
+            requires_hold = True
 
-        action = RECOMMENDED_ACTIONS[tier]
-        return round(overall, 2), tier, action
+        # Explainability summary
+        contributing_factors = []
+        if synthetic_risk > 50.0:
+            contributing_factors.append(f"Wav2Vec2 Synthetic Speech Detector ({synthetic_risk:.0f}%)")
+        if spectral_risk > 40.0:
+            contributing_factors.append(f"Spectral & Phase Inconsistency ({spectral_risk:.0f}%)")
+        if prosody_risk > 40.0:
+            contributing_factors.append(f"Unnatural Pitch/Rhythm Cadence ({prosody_risk:.0f}%)")
+        if speaker_mismatch_risk > 40.0:
+            contributing_factors.append(f"Biometric Voice Deviation from Enrolled Profile ({speaker_mismatch_risk:.0f}%)")
+        if context_risk > 40.0:
+            contributing_factors.append(f"Unregistered Caller Line or High Financial Stakes ({context_risk:.0f}%)")
+        if scam_risk > 40.0:
+            contributing_factors.append(f"Urgent Extortion / Credential Harvesting Triggers ({scam_risk:.0f}%)")
+
+        return {
+            "overall_risk": fused_score,
+            "threat_tier": tier,
+            "action_code": action_code,
+            "recommended_action": recommended_action,
+            "requires_hold": requires_hold,
+            "active_policy": policy["name"],
+            "contributing_factors": contributing_factors,
+            "layer_breakdown": {
+                "synthetic_model": round(synthetic_risk, 1),
+                "spectral_phase": round(spectral_risk, 1),
+                "prosody_behavior": round(prosody_risk, 1),
+                "speaker_mismatch": round(speaker_mismatch_risk, 1),
+                "context_stakes": round(context_risk, 1),
+                "conversational_scam": round(scam_risk, 1)
+            }
+        }
 
 
-# Default instance
-risk_fusion_engine = RiskFusionEngine()
+risk_fusion_engine = UnifiedRiskFusionEngine()

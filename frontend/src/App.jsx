@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Shield, Wifi, WifiOff, Terminal, Zap, Clock, Cpu, Volume2, RefreshCw } from 'lucide-react';
+import { Shield, Wifi, WifiOff, Terminal, Zap, Clock, Cpu, RefreshCw, Sliders, IndianRupee, KeyRound } from 'lucide-react';
 import CallRoom from './components/CallRoom.jsx';
 import DemoController from './components/DemoController.jsx';
 import RiskMeter from './components/RiskMeter.jsx';
 import RiskTimeline from './components/RiskTimeline.jsx';
 import AlertPanel from './components/AlertPanel.jsx';
 import TranscriptPane from './components/TranscriptPane.jsx';
+import CallContextPanel from './components/CallContextPanel.jsx';
+import MultiSignalRadar from './components/MultiSignalRadar.jsx';
+import TransactionModal from './components/TransactionModal.jsx';
+import SecondaryVerify from './components/SecondaryVerify.jsx';
+import PolicySettings from './components/PolicySettings.jsx';
 
 export default function App() {
   const [roomId, setRoomId] = useState('satya-room-1');
@@ -13,24 +18,50 @@ export default function App() {
   const [wsConnected, setWsConnected] = useState(false);
   const [modelsReady, setModelsReady] = useState(false);
 
-  // Risk States
+  // Multi-layer Risk States
   const [syntheticRisk, setSyntheticRisk] = useState(0);
+  const [spectralRisk, setSpectralRisk] = useState(0);
+  const [prosodyRisk, setProsodyRisk] = useState(0);
+  const [speakerSimilarity, setSpeakerSimilarity] = useState(100);
+  const [contextRisk, setContextRisk] = useState(0);
   const [scamRisk, setScamRisk] = useState(0);
   const [overallRisk, setOverallRisk] = useState(0);
   const [threatTier, setThreatTier] = useState('LOW');
+  const [actionCode, setActionCode] = useState('ALLOW');
   const [recommendedAction, setRecommendedAction] = useState('Normal conversation. No threat detected.');
+  const [requiresHold, setRequiresHold] = useState(false);
+  const [transactionHeld, setTransactionHeld] = useState(false);
+  const [activeIncidentId, setActiveIncidentId] = useState(null);
+
+  // Fine-grained Telemetry & Breakdown
+  const [layerBreakdown, setLayerBreakdown] = useState({});
+  const [telemetry, setTelemetry] = useState({});
   const [transcript, setTranscript] = useState('');
   const [detectedPatterns, setDetectedPatterns] = useState([]);
+  const [detectedLanguage, setDetectedLanguage] = useState('en');
   const [riskHistory, setRiskHistory] = useState([]);
   const [lastLatencyMs, setLastLatencyMs] = useState(null);
+
+  // Context State
+  const [callerNumber, setCallerNumber] = useState('+91-91234-56789');
+  const [claimedIdentity, setClaimedIdentity] = useState('Rahul Sharma (CFO)');
+  const [registeredNumber, setRegisteredNumber] = useState('+91-98110-45291');
+  const [transactionAmount, setTransactionAmount] = useState(2500000);
+  const [actionType, setActionType] = useState('Urgent Fund Transfer');
+
+  // Interactive Modals
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [verifyMode, setVerifyMode] = useState('mfa');
 
   // Demo Mode State
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
   const [activeDemoScenario, setActiveDemoScenario] = useState(null);
 
-  // Inspector Logs
+  // Tabs & Privacy Settings
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'governance', 'inspector'
+  const [featureOnlyLogging, setFeatureOnlyLogging] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'inspector'
 
   const wsRef = useRef(null);
 
@@ -66,7 +97,7 @@ export default function App() {
   const signalingHandlerRef = useRef(null);
   const pendingDemoRef = useRef(null);
 
-  // WebSocket Connection with automatic reconnection & IPv4 fallback
+  // WebSocket Connection
   const connectWebSocket = () => {
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
       return;
@@ -75,7 +106,7 @@ export default function App() {
     const host = window.location.hostname === 'localhost' ? '127.0.0.1' : (window.location.hostname || '127.0.0.1');
     const wsUrl = `ws://${host}:8000/ws/call/${roomId}`;
     addLog('SYSTEM', `Connecting WebSocket to ${wsUrl}...`);
-    
+
     try {
       const ws = new WebSocket(wsUrl);
 
@@ -83,7 +114,6 @@ export default function App() {
         setWsConnected(true);
         addLog('SYSTEM', `WebSocket connected to room '${roomId}'`);
 
-        // Send any queued demo requests
         if (pendingDemoRef.current) {
           ws.send(JSON.stringify(pendingDemoRef.current));
           addLog('SENT', `Dispatched queued demo: ${pendingDemoRef.current.scenario}`);
@@ -96,11 +126,42 @@ export default function App() {
           const data = JSON.parse(event.data);
 
           if (data.type === 'risk_update') {
-            setSyntheticRisk(data.synthetic_risk || 0);
-            setScamRisk(data.scam_risk || 0);
             setOverallRisk(data.overall_risk || 0);
             setThreatTier(data.threat_tier || 'LOW');
+            setActionCode(data.action_code || 'ALLOW');
             setRecommendedAction(data.recommended_action || '');
+            setRequiresHold(data.requires_hold || false);
+            setTransactionHeld(data.transaction_held || false);
+            if (data.active_incident_id) {
+              setActiveIncidentId(data.active_incident_id);
+            }
+
+            if (data.layer_breakdown) {
+              setLayerBreakdown(data.layer_breakdown);
+              setSyntheticRisk(data.layer_breakdown.synthetic_model || 0);
+              setSpectralRisk(data.layer_breakdown.spectral_phase || 0);
+              setProsodyRisk(data.layer_breakdown.prosody_behavior || 0);
+              const spkMis = data.layer_breakdown.speaker_mismatch || 0;
+              setSpeakerSimilarity(Math.max(0, 100 - spkMis));
+              setContextRisk(data.layer_breakdown.context_stakes || 0);
+              setScamRisk(data.layer_breakdown.conversational_scam || 0);
+            }
+
+            if (data.telemetry) {
+              setTelemetry(data.telemetry);
+              if (data.telemetry.speaker && data.telemetry.speaker.claimed_identity) {
+                setClaimedIdentity(data.telemetry.speaker.claimed_identity);
+              }
+              if (data.telemetry.context) {
+                if (data.telemetry.context.caller_number) setCallerNumber(data.telemetry.context.caller_number);
+                if (data.telemetry.context.transaction_amount) setTransactionAmount(data.telemetry.context.transaction_amount);
+              }
+            }
+
+            if (data.detected_language) {
+              setDetectedLanguage(data.detected_language);
+            }
+
             setLastLatencyMs(data.processing_latency_ms || null);
 
             if (data.transcript_snippet) {
@@ -115,11 +176,11 @@ export default function App() {
               {
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                 overall: data.overall_risk || 0,
-                synthetic: data.synthetic_risk || 0,
-                scam: data.scam_risk || 0
+                synthetic: (data.layer_breakdown && data.layer_breakdown.synthetic_model) || 0,
+                scam: (data.layer_breakdown && data.layer_breakdown.conversational_scam) || 0
               }
             ]);
-            addLog('RISK', `Update: Overall=${data.overall_risk} (${data.threat_tier}), Synth=${data.synthetic_risk}%, Scam=${data.scam_risk}%`);
+            addLog('RISK', `Update: Overall=${data.overall_risk} (${data.threat_tier}) | Policy: ${data.action_code}`);
           } else if (data.type === 'demo_completed') {
             setIsPlayingDemo(false);
             setActiveDemoScenario(null);
@@ -128,7 +189,6 @@ export default function App() {
             setIsPlayingDemo(false);
             setActiveDemoScenario(null);
           } else if (['offer', 'answer', 'candidate', 'user-joined', 'user-left'].includes(data.type)) {
-            // Forward signaling messages to CallRoom
             if (signalingHandlerRef.current) {
               signalingHandlerRef.current(data);
             }
@@ -141,7 +201,7 @@ export default function App() {
         }
       };
 
-      ws.onerror = (err) => {
+      ws.onerror = () => {
         setWsConnected(false);
         addLog('ERROR', 'WebSocket error. Reconnecting...');
       };
@@ -158,7 +218,6 @@ export default function App() {
     }
   };
 
-  // Keep WebSocket automatically connected with heartbeat
   useEffect(() => {
     connectWebSocket();
     const reconnectTimer = setInterval(() => {
@@ -169,7 +228,27 @@ export default function App() {
     return () => clearInterval(reconnectTimer);
   }, [roomId]);
 
-  // Demo Mode Handlers - non-blocking auto-dispatch
+  // Update Call Context
+  const handleUpdateContext = async (newContext) => {
+    if (newContext.caller_number) setCallerNumber(newContext.caller_number);
+    if (newContext.transaction_amount !== undefined) setTransactionAmount(newContext.transaction_amount);
+
+    try {
+      await fetch('http://localhost:8000/api/context/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          room_id: roomId,
+          ...newContext
+        })
+      });
+      addLog('CONTEXT', `Updated: ${JSON.stringify(newContext)}`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Demo Trigger Handlers
   const handleStartDemo = (scenarioId) => {
     setTranscript('');
     setDetectedPatterns([]);
@@ -187,7 +266,6 @@ export default function App() {
       wsRef.current.send(JSON.stringify(payload));
       addLog('SENT', `Triggered Demo Mode: ${scenarioId}`);
     } else {
-      // Queue payload and connect immediately
       pendingDemoRef.current = payload;
       connectWebSocket();
       addLog('SYSTEM', `Reconnecting WebSocket and queueing demo: ${scenarioId}`);
@@ -207,17 +285,27 @@ export default function App() {
 
   const resetMetrics = () => {
     setSyntheticRisk(0);
+    setSpectralRisk(0);
+    setProsodyRisk(0);
+    setSpeakerSimilarity(100);
+    setContextRisk(0);
     setScamRisk(0);
     setOverallRisk(0);
     setThreatTier('LOW');
+    setActionCode('ALLOW');
     setRecommendedAction('Normal conversation. No threat detected.');
+    setRequiresHold(false);
+    setTransactionHeld(false);
+    setActiveIncidentId(null);
     setTranscript('');
     setDetectedPatterns([]);
     setRiskHistory([]);
+    setLayerBreakdown({});
+    setTelemetry({});
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '1.25rem' }}>
       {/* Top Header */}
       <header style={{
         display: 'flex',
@@ -225,7 +313,7 @@ export default function App() {
         justifyContent: 'space-between',
         paddingBottom: '1.25rem',
         borderBottom: '1px solid var(--border-card)',
-        marginBottom: '1.5rem',
+        marginBottom: '1.25rem',
         flexWrap: 'wrap',
         gap: '1rem'
       }}>
@@ -244,12 +332,12 @@ export default function App() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>SwarSatya</h1>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
-                स्वर सत्य • SIH #26104
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+                स्वर सत्य • Voice Security Operations Center (SIH #26104)
               </span>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
-              Real-Time AI Voice Cloning & Impersonation Scam Defense Pipeline
+              Multi-Layer Real-Time Voice Biometric & Impersonation Scam Defense Platform
             </p>
           </div>
         </div>
@@ -269,7 +357,7 @@ export default function App() {
             border: `1px solid ${backendHealthy ? '#10b98140' : '#f8717140'}`
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: backendHealthy ? '#10b981' : '#f87171' }} />
-            API: {backendHealthy ? 'ONLINE' : 'OFFLINE'}
+            ML CORE: {backendHealthy ? 'ACTIVE (MULTI-LAYER)' : 'OFFLINE'}
           </div>
 
           <div style={{
@@ -301,14 +389,14 @@ export default function App() {
               border: '1px solid var(--border-card)'
             }}>
               <Clock size={13} color="#06b6d4" />
-              <span>Latency: {lastLatencyMs} ms</span>
+              <span>Pipeline: {lastLatencyMs} ms</span>
             </div>
           )}
         </div>
       </header>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+      {/* Navigation Tabs */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => setActiveTab('dashboard')}
@@ -317,7 +405,7 @@ export default function App() {
               borderRadius: '8px',
               border: 'none',
               fontSize: '0.85rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
               backgroundColor: activeTab === 'dashboard' ? 'var(--accent-cyan)' : '#1f2937',
               color: activeTab === 'dashboard' ? '#0a0f1d' : '#9ca3af',
@@ -327,8 +415,29 @@ export default function App() {
             }}
           >
             <Shield size={15} />
-            Live Defense Dashboard
+            Live Voice SOC
           </button>
+
+          <button
+            onClick={() => setActiveTab('governance')}
+            style={{
+              padding: '0.55rem 1.1rem',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'governance' ? 'var(--accent-cyan)' : '#1f2937',
+              color: activeTab === 'governance' ? '#0a0f1d' : '#9ca3af',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
+            }}
+          >
+            <Sliders size={15} />
+            Policy, Governance & Incidents
+          </button>
+
           <button
             onClick={() => setActiveTab('inspector')}
             style={{
@@ -336,7 +445,7 @@ export default function App() {
               borderRadius: '8px',
               border: 'none',
               fontSize: '0.85rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
               backgroundColor: activeTab === 'inspector' ? 'var(--accent-cyan)' : '#1f2937',
               color: activeTab === 'inspector' ? '#0a0f1d' : '#9ca3af',
@@ -350,32 +459,75 @@ export default function App() {
           </button>
         </div>
 
-        <button
-          onClick={resetMetrics}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            background: 'transparent',
-            border: '1px solid var(--border-card)',
-            color: 'var(--text-secondary)',
-            padding: '0.45rem 0.85rem',
-            borderRadius: '6px',
-            fontSize: '0.75rem',
-            cursor: 'pointer'
-          }}
-        >
-          <RefreshCw size={13} />
-          Reset Dashboard
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setIsTransferModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'linear-gradient(135deg, #06b6d4, #2563eb)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.45rem 0.95rem',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <IndianRupee size={13} />
+            Execute Bank Transfer
+          </button>
+
+          <button
+            onClick={resetMetrics}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'transparent',
+              border: '1px solid var(--border-card)',
+              color: 'var(--text-secondary)',
+              padding: '0.45rem 0.85rem',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              cursor: 'pointer'
+            }}
+          >
+            <RefreshCw size={13} />
+            Reset
+          </button>
+        </div>
       </div>
 
       {activeTab === 'dashboard' && (
         <div>
-          {/* Prominent Alert Banner */}
+          {/* Actionable Alert Panel */}
           <AlertPanel
             threatTier={threatTier}
             recommendedAction={recommendedAction}
+            requiresHold={requiresHold || transactionHeld}
+            onOpenTransferModal={() => setIsTransferModalOpen(true)}
+            onOpenMfaModal={() => {
+              setVerifyMode('mfa');
+              setIsVerifyModalOpen(true);
+            }}
+            onOpenCallbackModal={() => {
+              setVerifyMode('callback');
+              setIsVerifyModalOpen(true);
+            }}
+          />
+
+          {/* Call Context & Enterprise Identity Enrichment */}
+          <CallContextPanel
+            callerNumber={callerNumber}
+            claimedIdentity={claimedIdentity}
+            registeredNumber={registeredNumber}
+            transactionAmount={transactionAmount}
+            actionType={actionType}
+            detectedLanguage={detectedLanguage}
+            onUpdateContext={handleUpdateContext}
           />
 
           {/* WebRTC Live Call Room */}
@@ -387,7 +539,7 @@ export default function App() {
             onRegisterSignaling={(cb) => { signalingHandlerRef.current = cb; }}
           />
 
-          {/* Demo Fallback Player */}
+          {/* Fallback Demo Mode Trigger Player */}
           <DemoController
             activeScenario={activeDemoScenario}
             onStartDemo={handleStartDemo}
@@ -395,15 +547,25 @@ export default function App() {
             isPlaying={isPlayingDemo}
           />
 
-          {/* 3-Way Threat Meter */}
+          {/* Multi-Layer Threat Telemetry Meter */}
           <RiskMeter
             syntheticRisk={syntheticRisk}
+            spectralRisk={spectralRisk}
+            prosodyRisk={prosodyRisk}
+            speakerSimilarity={speakerSimilarity}
+            contextRisk={contextRisk}
             scamRisk={scamRisk}
             overallRisk={overallRisk}
             threatTier={threatTier}
           />
 
-          {/* Real-Time Progression Timeline Graph */}
+          {/* 4-Signal Deep Radar Breakdown */}
+          <MultiSignalRadar
+            telemetry={telemetry}
+            layerBreakdown={layerBreakdown}
+          />
+
+          {/* Dynamic Risk Progression Timeline */}
           <RiskTimeline history={riskHistory} />
 
           {/* Live Transcript Pane */}
@@ -414,11 +576,19 @@ export default function App() {
         </div>
       )}
 
+      {activeTab === 'governance' && (
+        <PolicySettings
+          activePolicy="high_value_transfer"
+          featureOnlyLogging={featureOnlyLogging}
+          onToggleFeatureOnly={(val) => setFeatureOnlyLogging(val)}
+        />
+      )}
+
       {activeTab === 'inspector' && (
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Terminal size={18} color="var(--accent-cyan)" />
-            Live Packet & Signal Inspector
+            Real-Time WebSocket Signal Inspector
           </h3>
           <div style={{
             background: '#070b14',
@@ -426,7 +596,7 @@ export default function App() {
             border: '1px solid var(--border-card)',
             padding: '1rem',
             minHeight: '350px',
-            maxHeight: '500px',
+            maxHeight: '520px',
             overflowY: 'auto'
           }}>
             {logs.map((log, idx) => (
@@ -437,6 +607,7 @@ export default function App() {
                   color: log.direction === 'SENT' ? '#38bdf8' :
                          log.direction === 'RISK' ? '#f43f5e' :
                          log.direction === 'RECV' ? '#34d399' :
+                         log.direction === 'CONTEXT' ? '#a78bfa' :
                          log.direction === 'ERROR' ? '#ef4444' : '#f59e0b'
                 }}>
                   {log.direction}:
@@ -447,6 +618,33 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Pre-Transaction Banking Transfer Modal */}
+      <TransactionModal
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+        overallRisk={overallRisk}
+        requiresHold={requiresHold || transactionHeld}
+        activeIncidentId={activeIncidentId}
+        onTriggerVerification={(mode) => {
+          setVerifyMode(mode);
+          setIsVerifyModalOpen(true);
+        }}
+      />
+
+      {/* Secondary Verification (MFA & Call-Back) Modal */}
+      <SecondaryVerify
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        initialTab={verifyMode}
+        registeredPhone={registeredNumber}
+        claimedIdentity={claimedIdentity}
+        activeIncidentId={activeIncidentId || 'INC-2026-00418'}
+        onVerificationSuccess={() => {
+          setTransactionHeld(false);
+          setRequiresHold(false);
+        }}
+      />
     </div>
   );
 }

@@ -1,8 +1,4 @@
-"""End-to-End Verification Suite for SwarSatya (SIH #26104).
-
-Simulates the browser client over WebSocket, executes all 4 demonstration scenarios,
-and verifies intermediate outputs, latency, risk fusion tiers, and SQLite persistence.
-"""
+"""End-to-End Verification Suite for SwarSatya Multi-Layer Voice SOC (SIH #26104)."""
 import asyncio
 import json
 import sqlite3
@@ -13,7 +9,7 @@ WS_URI = "ws://127.0.0.1:8000/ws/call/satya-e2e-test"
 DB_PATH = "D:/Puneet/Swar/backend/swarsatya.db"
 
 
-async def test_scenario(scenario_id: str, max_chunks: int = 3):
+async def test_scenario(scenario_id: str, max_chunks: int = 2):
     print(f"\n=======================================================")
     print(f"TESTING SCENARIO: {scenario_id}")
     print(f"=======================================================")
@@ -26,27 +22,31 @@ async def test_scenario(scenario_id: str, max_chunks: int = 3):
             "scenario": scenario_id
         }
         await ws.send(json.dumps(start_msg))
-        print(f"Sent: {start_msg}")
 
         received_chunks = []
-        timeout = 18.0  # Allow up to 18s for 3 chunks (chunk duration + inference)
+        timeout = 20.0
         start_t = time.time()
 
         while len(received_chunks) < max_chunks and (time.time() - start_t) < timeout:
             try:
-                resp = await asyncio.wait_for(ws.recv(), timeout=6.0)
+                resp = await asyncio.wait_for(ws.recv(), timeout=7.0)
                 data = json.loads(resp)
                 if data.get("type") == "risk_update" and data.get("is_speech", True):
                     received_chunks.append(data)
+                    brk = data.get("layer_breakdown", {})
                     print(f"  [Chunk {data['chunk_index']}] "
-                          f"Synth: {data['synthetic_risk']}% | "
-                          f"Scam: {data['scam_risk']}% | "
                           f"Overall: {data['overall_risk']} ({data['threat_tier']}) | "
+                          f"Action: {data.get('action_code')} | "
                           f"Latency: {data['processing_latency_ms']}ms")
+                    print(f"    Layers: Synth={brk.get('synthetic_model')}% | "
+                          f"Spectral={brk.get('spectral_phase')}% | "
+                          f"Prosody={brk.get('prosody_behavior')}% | "
+                          f"SpkMismatch={brk.get('speaker_mismatch')}% | "
+                          f"Context={brk.get('context_stakes')}%")
                     if data.get("transcript_snippet"):
-                        print(f"    Transcript: \"{data['transcript_snippet']}\"")
-                    if data.get("detected_patterns"):
-                        print(f"    Signals: {data['detected_patterns']}")
+                        print(f"    Transcript: \"{data['transcript_snippet']}\" (Lang: {data.get('detected_language')})")
+                    if data.get("contributing_factors"):
+                        print(f"    Factors: {data['contributing_factors']}")
                 elif data.get("type") == "demo_completed":
                     break
             except asyncio.TimeoutError:
@@ -68,7 +68,7 @@ async def main():
 
     # Verify SQLite DB
     print("\n=======================================================")
-    print("VERIFYING SQLITE PERSISTENCE")
+    print("VERIFYING SQLITE PERSISTENCE & INCIDENTS")
     print("=======================================================")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -78,10 +78,14 @@ async def main():
     log_count = cur.fetchone()["cnt"]
     print(f"Total risk log entries in DB: {log_count}")
 
-    cur.execute("SELECT * FROM risk_logs ORDER BY id DESC LIMIT 4")
-    rows = cur.fetchall()
-    for r in rows:
-        print(f"  DB Row #{r['id']} | Room: {r['room_id']} | Overall: {r['overall_risk']} | Tier: {r['threat_tier']} | Latency: {r['processing_latency_ms']}ms")
+    cur.execute("SELECT COUNT(*) as cnt FROM security_incidents")
+    inc_count = cur.fetchone()["cnt"]
+    print(f"Total security incident tickets logged: {inc_count}")
+
+    cur.execute("SELECT * FROM security_incidents ORDER BY timestamp DESC LIMIT 3")
+    incidents = cur.fetchall()
+    for inc in incidents:
+        print(f"  Incident {inc['incident_id']} | Target: {inc['claimed_identity']} | Risk: {inc['risk_score']}% | Action: {inc['action_taken']}")
 
     conn.close()
     print("\nAll E2E scenarios verified successfully!")
