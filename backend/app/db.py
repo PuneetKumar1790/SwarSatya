@@ -72,6 +72,21 @@ def init_db():
             )
         """)
         cursor.execute("""
+            CREATE TABLE IF NOT EXISTS model_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                feedback_id TEXT UNIQUE,
+                session_id TEXT NOT NULL,
+                room_id TEXT NOT NULL,
+                timestamp REAL NOT NULL,
+                caller_number TEXT DEFAULT '',
+                claimed_identity TEXT DEFAULT '',
+                original_risk REAL DEFAULT 0.0,
+                user_verdict TEXT NOT NULL,
+                comments TEXT DEFAULT '',
+                action_requested TEXT DEFAULT 'LOG_ONLY'
+            )
+        """)
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS audit_trail (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp REAL NOT NULL,
@@ -238,6 +253,41 @@ def get_audit_trail(limit: int = 30) -> List[Dict[str, Any]]:
         return [dict(r) for r in rows]
 
 
+def add_feedback(
+    session_id: str,
+    room_id: str,
+    caller_number: str,
+    claimed_identity: str,
+    original_risk: float,
+    user_verdict: str,
+    comments: str = "",
+    action_requested: str = "LOG_ONLY"
+) -> str:
+    feedback_id = f"FB-{uuid.uuid4().hex[:6].upper()}"
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO model_feedback (
+                feedback_id, session_id, room_id, timestamp, caller_number,
+                claimed_identity, original_risk, user_verdict, comments, action_requested
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            feedback_id, session_id, room_id, time.time(), caller_number,
+            claimed_identity, original_risk, user_verdict, comments, action_requested
+        ))
+        conn.commit()
+    log_audit_event("FEEDBACK_SUBMITTED", "USER", f"Feedback {feedback_id}: Verdict={user_verdict}, Action={action_requested}")
+    return feedback_id
+
+
+def get_all_feedback(limit: int = 30) -> List[Dict[str, Any]]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM model_feedback ORDER BY timestamp DESC LIMIT ?", (limit,))
+        rows = cursor.fetchall()
+        return [dict(r) for r in rows]
+
+
 def set_privacy_config(feature_only: bool, raw_audio: bool):
     global PRIVACY_FEATURE_ONLY_LOGGING, RAW_AUDIO_RETENTION
     PRIVACY_FEATURE_ONLY_LOGGING = feature_only
@@ -256,3 +306,11 @@ def get_privacy_config() -> Dict[str, Any]:
         "edge_inference_support": True,
         "anonymization_status": "ACTIVE"
     }
+
+
+# Ensure SQLite tables and indices exist immediately
+try:
+    init_db()
+except Exception as _e:
+    pass
+

@@ -21,7 +21,8 @@ from app.audio.prosody import prosody_analyzer
 from app.db import (
     create_session, end_session, init_db, log_risk_chunk,
     create_security_incident, get_incidents, resolve_incident,
-    set_privacy_config, get_privacy_config, get_audit_trail, log_audit_event
+    set_privacy_config, get_privacy_config, get_audit_trail, log_audit_event,
+    add_feedback, get_all_feedback
 )
 from app.models.asr import speech_recognizer
 from app.models.deepfake import deepfake_detector
@@ -29,6 +30,7 @@ from app.models.scam_rules import scam_detector
 from app.models.speaker import speaker_engine
 from app.risk.context import context_engine
 from app.risk.fusion import risk_fusion_engine, POLICY_PROFILES
+from app.risk.copilot import scam_copilot
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -281,6 +283,10 @@ async def process_audio_chunk(room_id: str, audio_np: np.ndarray, chunk_index: i
             room.scam_risk
         )
         latency_ms = (time.time() - t0) * 1000.0
+        copilot_guidance = scam_copilot.generate_defense_guidance(
+            room.rolling_transcript,
+            room.detected_patterns
+        )
         update_msg = {
             "type": "risk_update",
             "room_id": room_id,
@@ -293,6 +299,7 @@ async def process_audio_chunk(room_id: str, audio_np: np.ndarray, chunk_index: i
             "recommended_action": fused["recommended_action"],
             "requires_hold": fused["requires_hold"],
             "layer_breakdown": fused["layer_breakdown"],
+            "defense_copilot": copilot_guidance,
             "contributing_factors": fused["contributing_factors"],
             "transcript_snippet": "",
             "detected_patterns": room.detected_patterns,
@@ -412,6 +419,12 @@ async def process_audio_chunk(room_id: str, audio_np: np.ndarray, chunk_index: i
         processing_latency_ms=round(latency_ms, 1)
     )
 
+    # 8. Generate Real-Time Scam Defense Copilot Guidance
+    copilot_guidance = scam_copilot.generate_defense_guidance(
+        room.rolling_transcript,
+        room.detected_patterns
+    )
+
     # 9. Real-time WebSocket Broadcast
     update_msg = {
         "type": "risk_update",
@@ -433,6 +446,7 @@ async def process_audio_chunk(room_id: str, audio_np: np.ndarray, chunk_index: i
             "speaker": speaker_data,
             "context": context_data
         },
+        "defense_copilot": copilot_guidance,
         "contributing_factors": fused["contributing_factors"],
         "transcript_snippet": transcript_chunk,
         "detected_patterns": room.detected_patterns,
@@ -708,6 +722,80 @@ async def update_privacy_settings(payload: dict = Body(...)):
     raw_audio = bool(payload.get("raw_audio_retention", False))
     set_privacy_config(feature_only, raw_audio)
     return JSONResponse(get_privacy_config())
+
+
+# ---------------- FEEDBACK, LEGAL HELPDESK & COPILOT ENDPOINTS ---------------- #
+
+@app.post("/api/feedback")
+async def submit_model_feedback(payload: dict = Body(...)):
+    """Feedback Forum endpoint to log user confirmation or report false alarms."""
+    room_id = payload.get("room_id", "satya-room-1")
+    room = manager.get_or_create_room(room_id)
+    user_verdict = payload.get("user_verdict", "CONFIRMED_SCAM")
+    comments = payload.get("comments", "")
+    action_requested = payload.get("action_requested", "LOG_ONLY")
+
+    fb_id = add_feedback(
+        session_id=room.session_id,
+        room_id=room_id,
+        caller_number=room.caller_number,
+        claimed_identity=room.claimed_identity_id,
+        original_risk=room.overall_risk,
+        user_verdict=user_verdict,
+        comments=comments,
+        action_requested=action_requested
+    )
+    return JSONResponse({"status": "success", "feedback_id": fb_id})
+
+
+@app.get("/api/feedback")
+async def list_model_feedback():
+    """Lists recent model feedback entries for the Feedback Forum."""
+    return JSONResponse({"feedback": get_all_feedback(30)})
+
+
+@app.get("/api/legal/fir-draft")
+async def generate_fir_draft(room_id: str = "satya-room-1"):
+    """
+    Legal Helpdesk: Auto-generates an official Cybercrime FIR Complaint Draft
+    compliant with Section 66D IT Act 2000 and Section 319 Bharatiya Nyaya Sanhita (BNS).
+    """
+    room = manager.get_or_create_room(room_id)
+    incident_ref = room.active_incident_id or f"INC-2026-{uuid.uuid4().hex[:5].upper()}"
+    draft = f"""FORMAL CYBERCRIME COMPLAINT DRAFT (Under Section 66D IT Act 2000 & Section 319 BNS)
+National Cyber Crime Reporting Portal (NCRP) - Helpline 1930
+
+1. COMPLAINANT INCIDENT REFERENCE: {incident_ref}
+2. DATE & TIME OF OCCURRENCE: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}
+3. SUSPECT CALLER NUMBER / VOIP ORIGIN: {room.caller_number}
+4. CLAIMED IMPERSONATED IDENTITY: {room.claimed_identity_id} (Claiming executive/authority role)
+5. ESTIMATED FINANCIAL EXPOSURE / DEMAND: Rs. {room.transaction_amount:,.2f}
+6. AI VOICE FORENSIC EVIDENCE (SwarSatya Platform):
+   - Impersonation Risk Score: {room.overall_risk:.1f}% ({room.threat_tier} Threat Tier)
+   - Synthetic Voice / Deepfake Probability: {room.synthetic_risk:.1f}%
+   - Acoustic Spectral Rolloff & Phase Irregularity: {room.spectral_risk:.1f}%
+   - Speaker Biometric Mismatch: {room.speaker_mismatch_risk:.1f}%
+7. EXTORTION PATTERNS DETECTED: {', '.join(room.detected_patterns) or 'Urgent financial demand, secrecy coercion'}
+8. RECORDED TRANSCRIPT EXCERPT:
+   \"{room.rolling_transcript[:300]}...\"
+
+PRAYER / ACTION REQUESTED:
+Urgent registration of FIR under Section 66D of Information Technology Act 2000 (Cheating by personation using computer resource) and Section 319 of Bharatiya Nyaya Sanhita (BNS). Request immediate freezing of beneficiary accounts under Indian Cyber Crime Coordination Centre (I4C) CFCFRMS framework."""
+    return JSONResponse({
+        "incident_id": incident_ref,
+        "fir_text": draft,
+        "caller_number": room.caller_number,
+        "risk_score": room.overall_risk,
+        "threat_tier": room.threat_tier
+    })
+
+
+@app.get("/api/copilot/guidance")
+async def get_copilot_guidance(room_id: str = "satya-room-1"):
+    """Returns dynamic scam defense counter-questions and legal advice."""
+    room = manager.get_or_create_room(room_id)
+    guidance = scam_copilot.generate_defense_guidance(room.rolling_transcript, room.detected_patterns)
+    return JSONResponse({"guidance": guidance})
 
 
 # ---------------- WEBSOCKET ENDPOINT ---------------- #

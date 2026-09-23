@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Shield, Wifi, WifiOff, Terminal, Zap, Clock, Cpu, RefreshCw, Sliders, IndianRupee, KeyRound } from 'lucide-react';
+import { Shield, Wifi, WifiOff, Terminal, Zap, Clock, Cpu, RefreshCw, Sliders, IndianRupee, KeyRound, Scale, MessageSquarePlus } from 'lucide-react';
 import CallRoom from './components/CallRoom.jsx';
 import DemoController from './components/DemoController.jsx';
 import RiskMeter from './components/RiskMeter.jsx';
@@ -11,6 +11,9 @@ import MultiSignalRadar from './components/MultiSignalRadar.jsx';
 import TransactionModal from './components/TransactionModal.jsx';
 import SecondaryVerify from './components/SecondaryVerify.jsx';
 import PolicySettings from './components/PolicySettings.jsx';
+import ScamCopilotCard from './components/ScamCopilotCard.jsx';
+import LegalHelpdesk from './components/LegalHelpdesk.jsx';
+import FeedbackForum from './components/FeedbackForum.jsx';
 
 export default function App() {
   const [roomId, setRoomId] = useState('satya-room-1');
@@ -49,10 +52,13 @@ export default function App() {
   const [transactionAmount, setTransactionAmount] = useState(2500000);
   const [actionType, setActionType] = useState('Urgent Fund Transfer');
 
-  // Interactive Modals
+  // Interactive Modals & Copilot Guidance
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [verifyMode, setVerifyMode] = useState('mfa');
+  const [defenseCopilot, setDefenseCopilot] = useState({});
 
   // Demo Mode State
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
@@ -169,6 +175,9 @@ export default function App() {
             }
             if (data.detected_patterns) {
               setDetectedPatterns(data.detected_patterns);
+            }
+            if (data.defense_copilot) {
+              setDefenseCopilot(data.defense_copilot);
             }
 
             setRiskHistory((prev) => [
@@ -302,6 +311,7 @@ export default function App() {
     setRiskHistory([]);
     setLayerBreakdown({});
     setTelemetry({});
+    setDefenseCopilot({});
   };
 
   return (
@@ -459,7 +469,47 @@ export default function App() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setIsLegalModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.45rem 0.95rem',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <Scale size={13} />
+            1930 Legal Helpdesk
+          </button>
+
+          <button
+            onClick={() => setIsFeedbackModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.45rem 0.95rem',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <MessageSquarePlus size={13} />
+            Feedback Forum
+          </button>
+
           <button
             onClick={() => setIsTransferModalOpen(true)}
             style={{
@@ -559,6 +609,12 @@ export default function App() {
             threatTier={threatTier}
           />
 
+          {/* Real-Time Scam Defense Copilot & Counter-Interrogation Scripts */}
+          <ScamCopilotCard
+            defenseCopilot={defenseCopilot}
+            detectedPatterns={detectedPatterns}
+          />
+
           {/* 4-Signal Deep Radar Breakdown */}
           <MultiSignalRadar
             telemetry={telemetry}
@@ -644,6 +700,29 @@ export default function App() {
           setTransactionHeld(false);
           setRequiresHold(false);
         }}
+      />
+
+      {/* National Cybercrime Legal Helpdesk (1930 & Section 66D IT Act) */}
+      <LegalHelpdesk
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        callerNumber={callerNumber}
+        claimedIdentity={claimedIdentity}
+        transactionAmount={transactionAmount}
+        overallRisk={overallRisk}
+        threatTier={threatTier}
+        activeIncidentId={activeIncidentId || 'INC-2026-00418'}
+      />
+
+      {/* Model Feedback Forum (Continuous Retraining Loop) */}
+      <FeedbackForum
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        roomId={roomId}
+        callerNumber={callerNumber}
+        claimedIdentity={claimedIdentity}
+        overallRisk={overallRisk}
+        threatTier={threatTier}
       />
     </div>
   );
