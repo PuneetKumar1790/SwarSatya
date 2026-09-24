@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { IndianRupee, AlertOctagon, CheckCircle2, ShieldAlert, ArrowRight, Lock } from 'lucide-react';
+import { BACKEND_URL } from '../config.js';
 
 export default function TransactionModal({
   isOpen,
@@ -20,7 +21,7 @@ export default function TransactionModal({
   const handleExecuteTransfer = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/action/simulate-transfer', {
+      const res = await fetch(`${BACKEND_URL}/api/action/simulate-transfer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PhoneForwarded, KeyRound, ShieldAlert, CheckCircle2, AlertOctagon, RefreshCw } from 'lucide-react';
+import { BACKEND_URL } from '../config.js';
 
 export default function SecondaryVerify({
   isOpen,
@@ -21,7 +22,7 @@ export default function SecondaryVerify({
   const handleSendOtp = async () => {
     setStatus('sending');
     try {
-      const res = await fetch('http://localhost:8000/api/action/send-mfa', {
+      const res = await fetch(`${BACKEND_URL}/api/action/send-mfa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ room_id: 'satya-room-1' })
@@ -38,7 +39,7 @@ export default function SecondaryVerify({
   const handleVerifyOtp = async () => {
     setStatus('verifying');
     try {
-      const res = await fetch('http://localhost:8000/api/action/verify-mfa', {
+      const res = await fetch(`${BACKEND_URL}/api/action/verify-mfa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ room_id: 'satya-room-1', otp_code: otp })

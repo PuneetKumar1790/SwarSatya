@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Scale, FileText, PhoneCall, Copy, Check, ShieldCheck, AlertOctagon, ExternalLink } from 'lucide-react';
+import { BACKEND_URL } from '../config.js';
 
 export default function LegalHelpdesk({
   isOpen,
@@ -24,7 +25,7 @@ export default function LegalHelpdesk({
   const fetchFirDraft = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/legal/fir-draft?room_id=satya-room-1`);
+      const res = await fetch(`${BACKEND_URL}/api/legal/fir-draft?room_id=satya-room-1`);
       if (res.ok) {
         const data = await res.json();
         setFirDraft(data.fir_text || '');

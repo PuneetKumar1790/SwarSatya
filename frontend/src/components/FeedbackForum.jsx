@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquarePlus, Send, RefreshCw, CheckCircle, AlertTriangle, ShieldAlert, UserCheck, Ban } from 'lucide-react';
+import { BACKEND_URL } from '../config.js';
 
 export default function FeedbackForum({
   isOpen,
@@ -28,7 +29,7 @@ export default function FeedbackForum({
   const loadFeedback = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch('http://localhost:8000/api/feedback');
+      const res = await fetch(`${BACKEND_URL}/api/feedback`);
       if (res.ok) {
         const data = await res.json();
         setFeedbackList(data.feedback || []);
@@ -44,7 +45,7 @@ export default function FeedbackForum({
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:8000/api/feedback', {
+      const res = await fetch(`${BACKEND_URL}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

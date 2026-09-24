@@ -14,6 +14,7 @@ import PolicySettings from './components/PolicySettings.jsx';
 import ScamCopilotCard from './components/ScamCopilotCard.jsx';
 import LegalHelpdesk from './components/LegalHelpdesk.jsx';
 import FeedbackForum from './components/FeedbackForum.jsx';
+import { BACKEND_URL, getWsUrl, CLOUD_BACKEND_URL } from './config.js';
 
 export default function App() {
   const [roomId, setRoomId] = useState('satya-room-1');
@@ -79,12 +80,12 @@ export default function App() {
   // Health check
   const checkHealth = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/health');
+      const res = await fetch(`${BACKEND_URL}/api/health`);
       if (res.ok) {
         const data = await res.json();
         setBackendHealthy(true);
         if (data.models_loaded) {
-          setModelsReady(data.models_loaded.deepfake || data.models_loaded.asr);
+          setModelsReady(data.models_loaded.deepfake || data.models_loaded.asr || data.models_loaded.speaker_biometrics);
         }
       } else {
         setBackendHealthy(false);
@@ -109,12 +110,12 @@ export default function App() {
       return;
     }
 
-    const host = window.location.hostname === 'localhost' ? '127.0.0.1' : (window.location.hostname || '127.0.0.1');
-    const wsUrl = `ws://${host}:8000/ws/call/${roomId}`;
+    const wsUrl = getWsUrl(roomId);
     addLog('SYSTEM', `Connecting WebSocket to ${wsUrl}...`);
 
     try {
       const ws = new WebSocket(wsUrl);
+
 
       ws.onopen = () => {
         setWsConnected(true);
@@ -243,7 +244,7 @@ export default function App() {
     if (newContext.transaction_amount !== undefined) setTransactionAmount(newContext.transaction_amount);
 
     try {
-      await fetch('http://localhost:8000/api/context/update', {
+      await fetch(`${BACKEND_URL}/api/context/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -354,6 +355,22 @@ export default function App() {
 
         {/* Status Indicators */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            padding: '0.35rem 0.75rem',
+            borderRadius: '8px',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+            color: '#60a5fa',
+            border: '1px solid rgba(59, 130, 246, 0.3)'
+          }} title={`Connected to: ${BACKEND_URL}`}>
+            <Zap size={13} color="#60a5fa" />
+            HF ZERO-GPU: {BACKEND_URL.includes('hf.space') ? 'CLOUD (A10G)' : 'LOCAL'}
+          </div>
+
           <div style={{
             display: 'flex',
             alignItems: 'center',

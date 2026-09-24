@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sliders, Shield, Lock, FileCheck, Database, History, Check } from 'lucide-react';
+import { BACKEND_URL } from '../config.js';
 
 export default function PolicySettings({
   activePolicy = 'high_value_transfer',
@@ -20,13 +21,13 @@ export default function PolicySettings({
 
   const fetchConfig = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/policy/config');
+      const res = await fetch(`${BACKEND_URL}/api/policy/config`);
       if (res.ok) {
         const data = await res.json();
         setPolicies(data.policies || {});
         setSelectedPolicy(data.active_policy || activePolicy);
       }
-      const privRes = await fetch('http://localhost:8000/api/privacy/config');
+      const privRes = await fetch(`${BACKEND_URL}/api/privacy/config`);
       if (privRes.ok) {
         const pdata = await privRes.json();
         setPrivacyConfig(pdata);
@@ -38,12 +39,12 @@ export default function PolicySettings({
 
   const fetchIncidents = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/incidents');
+      const res = await fetch(`${BACKEND_URL}/api/incidents`);
       if (res.ok) {
         const data = await res.json();
         setIncidents(data.incidents || []);
       }
-      const ares = await fetch('http://localhost:8000/api/audit');
+      const ares = await fetch(`${BACKEND_URL}/api/audit`);
       if (ares.ok) {
         const adata = await ares.json();
         setAuditLogs(adata.audit_logs || []);
@@ -62,7 +63,7 @@ export default function PolicySettings({
     setSelectedPolicy(pId);
     if (onPolicyChange) onPolicyChange(pId);
     try {
-      await fetch('http://localhost:8000/api/policy/config', {
+      await fetch(`${BACKEND_URL}/api/policy/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ policy_id: pId })
@@ -82,7 +83,7 @@ export default function PolicySettings({
       onToggleFeatureOnly(updated[field]);
     }
     try {
-      await fetch('http://localhost:8000/api/privacy/config', {
+      await fetch(`${BACKEND_URL}/api/privacy/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
