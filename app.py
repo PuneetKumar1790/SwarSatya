@@ -257,9 +257,8 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
     """)
 
 
-# Mount the full FastAPI app for REST APIs and WebSockets without route schema conflicts
-demo.app.mount("/api", fastapi_app)
-demo.app.mount("/ws", fastapi_app)
+# Mount the full FastAPI app under /soc for REST APIs and WebSockets
+demo.app.mount("/soc", fastapi_app)
 
 app = demo.app
 
