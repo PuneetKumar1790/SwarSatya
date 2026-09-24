@@ -247,7 +247,8 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
     analyze_btn.click(
         fn=analyze_voice_sample,
         inputs=[audio_in, caller_in, identity_in, amount_in],
-        outputs=[threat_gauge, telemetry_out, transcript_out, copilot_out, fir_out]
+        outputs=[threat_gauge, telemetry_out, transcript_out, copilot_out, fir_out],
+        api_name=False
     )
 
     gr.Markdown("""
@@ -256,12 +257,11 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
     """)
 
 
-# Merge all FastAPI routes and WebSockets into demo.app
-for route in fastapi_app.router.routes:
-    if route not in demo.app.router.routes:
-        demo.app.router.routes.append(route)
+# Mount the full FastAPI app for REST APIs and WebSockets without route schema conflicts
+demo.app.mount("/api", fastapi_app)
+demo.app.mount("/ws", fastapi_app)
 
 app = demo.app
 
 if __name__ == "__main__":
-    demo.queue().launch(server_name="0.0.0.0", server_port=7860)
+    demo.queue().launch(server_name="0.0.0.0", server_port=7860, show_api=False)
