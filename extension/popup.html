@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwarSatya Voice Guard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body {
+      width: 320px;
+      background: #0a0f1d;
+      color: #f3f4f6;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #1f2937;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 16px;
+    }
+    .title-group h1 { font-size: 14px; font-weight: 800; color: #f9fafb; }
+    .title-group p { font-size: 11px; color: #9ca3af; }
+    .status-card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .status-row:last-child { margin-bottom: 0; }
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      margin-right: 6px;
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-safe { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-warn { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary {
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+    }
+    .footer-help {
+      background: #0d1322;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #1f2937;
+      margin-top: 8px;
+    }
+    .helpline-num { font-weight: 800; color: #10b981; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-badge">🛡️</div>
+    <div class="title-group">
+      <h1>SwarSatya Guard</h1>
+      <p>Real-Time Voice Impersonation Defense</p>
+    </div>
+  </div>
+
+  <div class="status-card">
+    <div class="status-row">
+      <span style="color: #9ca3af;">Voice SOC Core:</span>
+      <span id="backendStatus"><span class="status-indicator" id="statusDot"></span><span id="statusText">Checking...</span></span>
+    </div>
+    <div class="status-row">
+      <span style="color: #9ca3af;">Active Tab Call:</span>
+      <span id="callStatus" class="badge badge-safe">STANDBY</span>
+    </div>
+    <div class="status-row">
+      <span style="color: #9ca3af;">Threat Tier:</span>
+      <span id="threatTierBadge" class="badge badge-safe">LOW (0%)</span>
+    </div>
+  </div>
+
+  <button id="openSidePanelBtn" class="btn btn-primary">
+    ⚡ Open In-Call Side Panel Copilot
+  </button>
+
+  <button id="openDashboardBtn" class="btn btn-secondary">
+    🖥️ Open Full Voice SOC Dashboard
+  </button>
+
+  <div class="footer-help">
+    <span style="color: #9ca3af;">National Cyber Helpline:</span>
+    <span class="helpline-num">📞 1930</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
