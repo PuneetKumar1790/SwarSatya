@@ -1,131 +1,82 @@
 # Deploying SwarSatya Backend & AI Core to Hugging Face Spaces (100% Free)
 
-This guide walks you through deploying the **SwarSatya Voice SOC backend and ML pipeline** on **Hugging Face Spaces** using the **Docker SDK**.
+This guide walks you through deploying the **SwarSatya Voice SOC backend and ML pipeline** on **Hugging Face Spaces** using the **Gradio SDK** (which requires **NO credit card or billing**).
 
 Hugging Face Spaces provides **16 GB RAM + 2 vCPU for FREE**, which comfortably loads PyTorch, Wav2Vec2, Faster-Whisper, and Librosa without hitting memory limits.
 
 ---
 
-## Step 1: Create a New Space on Hugging Face
+## Step 1: Create a Free Gradio Space on Hugging Face
 
-1. Log in to [Hugging Face](https://huggingface.co/) (create a free account if you don't have one).
-2. Click on your profile icon in the top right and click **"New Space"** (or visit [huggingface.co/new-space](https://huggingface.co/new-space)).
-3. Fill in the Space settings:
+1. Go to **[huggingface.co/new-space](https://huggingface.co/new-space)**.
+2. Fill in the settings:
    - **Space name:** `swarsatya-backend`
    - **License:** `apache-2.0` (or `mit`)
-   - **Select the Space SDK:** Choose **`Docker`** -> **`Blank`** (Do NOT choose Gradio or Streamlit).
-   - **Space Hardware:** Select **`CPU basic · 2 vCPU · 16 GB · FREE`**.
+   - **Select the Space SDK:** Select **`Gradio`** (the orange box) -> Choose template: **`Blank`**.
+   - **Space Hardware:** Select **`CPU basic · 2 vCPU · 16 GB · FREE`** *(100% Free, NO credit card needed)*.
    - **Visibility:** **Public**.
-4. Click **"Create Space"**.
+3. Click **"Create Space"** at the bottom.
 
 ---
 
-## Step 2: Configure the Space `README.md` Frontmatter
+## Step 2: Push the SwarSatya Repository to Hugging Face
 
-Hugging Face Spaces requires a YAML header in the root `README.md` to know which port to expose.
+In your terminal (inside `d:\Puneet\Swar`):
 
-Create or update the `README.md` in your Space with this exact header at the very top:
-
-```yaml
----
-title: SwarSatya Voice SOC ML Core
-emoji: 🛡️
-colorFrom: blue
-colorTo: cyan
-sdk: docker
-app_port: 7860
-pinned: false
----
-
-# SwarSatya - Real-Time AI Voice Impersonation Defense Core (SIH #26104)
-Multi-Layer Voice Security Operations Center backend powered by FastAPI, PyTorch, and Wav2Vec2.
-```
-
----
-
-## Step 3: Deploy via Git to Hugging Face
-
-In your local terminal (inside `d:\Puneet\Swar`):
-
-### 1. Authenticate with Hugging Face Git
+### 1. Authenticate with Hugging Face (One-time)
 ```bash
-# If not already installed:
-# pip install huggingface_hub
 huggingface-cli login
-# Enter your Hugging Face User Access Token (from https://huggingface.co/settings/tokens with Write permissions)
 ```
+*(Paste your User Access Token from https://huggingface.co/settings/tokens with Write permissions)*
 
-### 2. Add Hugging Face Space as a Git Remote
-Replace `<YOUR_HF_USERNAME>` with your actual Hugging Face username:
+### 2. Add Your Hugging Face Space as a Remote
+Replace `<YOUR_HF_USERNAME>` with your actual Hugging Face username (e.g. `Puneetk1789`):
 ```bash
-git remote add hf https://huggingface.co/spaces/<YOUR_HF_USERNAME>/swarsatya-backend
+git remote add hf https://huggingface.co/spaces/Puneetk1789/swarsatya-backend
 ```
 
 ### 3. Push the Code to Hugging Face
 ```bash
-git add Dockerfile README.md backend demo_audio
-git commit -m "deploy: configure Hugging Face Spaces Docker container"
+git add app.py packages.txt requirements.txt backend demo_audio
+git commit -m "deploy: configure Hugging Face Spaces Gradio SDK"
 git push hf main
 ```
 
 ---
 
-## Step 4: Verify the Backend is Live
+## Step 3: What Happens in Hugging Face
 
-1. Go to your Hugging Face Space page: `https://huggingface.co/spaces/<YOUR_HF_USERNAME>/swarsatya-backend`.
-2. Wait 2–3 minutes for the Docker image to build and start. Once ready, the status badge will say **"Running"**.
-3. Your direct API URL is:
-   ```
-   https://<YOUR_HF_USERNAME>-swarsatya-backend.hf.space
-   ```
-4. Test the health endpoint in your browser or curl:
-   ```
-   https://<YOUR_HF_USERNAME>-swarsatya-backend.hf.space/api/health
-   ```
-   You will get the response:
-   ```json
-   {
-     "status": "ok",
-     "app": "SwarSatya Voice SOC",
-     "models_loaded": {
-       "deepfake": true,
-       "asr": true,
-       "speaker_biometrics": true,
-       "spectral_engine": true,
-       "prosody_engine": true,
-       "context_engine": true
-     }
-   }
-   ```
-5. Your WebSocket endpoint for real-time audio is:
-   ```
-   wss://<YOUR_HF_USERNAME>-swarsatya-backend.hf.space/ws/call/satya-room-1
-   ```
+1. Hugging Face automatically reads:
+   - **`packages.txt`:** Installs `libsndfile1` and `ffmpeg` system audio codecs.
+   - **`requirements.txt`:** Installs PyTorch, Transformers, Faster-Whisper, FastAPI, and Librosa.
+   - **`app.py`:** Starts Uvicorn and loads our entire FastAPI backend on port **7860**.
+2. Within 2–3 minutes, your Space turns **"Running"**.
 
 ---
 
-## Step 5: Connect Frontend (Vercel or Localhost) to Hugging Face
+## Step 4: Your Live Cloud Endpoints
 
-Now point your frontend to your free Hugging Face backend:
+- **Live Gradio Landing Page:**
+  ```
+  https://Puneetk1789-swarsatya-backend.hf.space/gradio
+  ```
+- **REST API Health Check:**
+  ```
+  https://Puneetk1789-swarsatya-backend.hf.space/api/health
+  ```
+- **Real-Time WebSocket Audio Stream:**
+  ```
+  wss://Puneetk1789-swarsatya-backend.hf.space/ws/call/satya-room-1
+  ```
 
-### In Local Development:
-Create a `.env.local` inside `frontend/`:
-```env
-VITE_BACKEND_URL=https://<YOUR_HF_USERNAME>-swarsatya-backend.hf.space
-```
+---
 
-### On Vercel (When Deploying Frontend):
-1. Go to your project on Vercel dashboard.
-2. Under **Settings** -> **Environment Variables**, add:
+## Step 5: Connecting Your Frontend (Vercel)
+
+When deploying your React frontend to **Vercel**:
+1. Add an Environment Variable in your Vercel Project Settings:
    - **Key:** `VITE_BACKEND_URL`
-   - **Value:** `https://<YOUR_HF_USERNAME>-swarsatya-backend.hf.space`
-3. Redeploy the frontend.
+   - **Value:** `https://Puneetk1789-swarsatya-backend.hf.space`
+2. Click **Deploy**.
 
-Now your entire SwarSatya application (Frontend on Vercel + AI Backend on Hugging Face Spaces) is **running 100% in the cloud for ₹0 cost!**
-
----
-
-## Key Benefits of Hugging Face Spaces for Judges:
-- **Zero OOM Crashes:** 16 GB of RAM gives the PyTorch and Whisper models plenty of headroom.
-- **Always Free:** No credit card required, no monthly subscription.
-- **Native HTTPS & WSS:** Built-in SSL certificates required for browser microphone permissions.
+Your frontend is now connected to a high-memory cloud AI backend for **₹0 total cost**!
