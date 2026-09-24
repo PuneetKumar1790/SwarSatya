@@ -1,3 +1,14 @@
+---
+title: SwarSatya Voice SOC
+emoji: 🛡️
+colorFrom: blue
+colorTo: cyan
+sdk: gradio
+sdk_version: 4.44.1
+app_file: app.py
+pinned: false
+---
+
 # SwarSatya (स्वर सत्य) — Real-Time Voice Security
 
 AI-powered real-time detection of voice cloning and impersonation scam calls in live browser conversations.

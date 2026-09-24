@@ -30,7 +30,15 @@ from app.risk.context import context_engine
 from app.risk.fusion import risk_fusion_engine
 from app.risk.copilot import scam_copilot
 
+try:
+    import spaces
+    gpu_decorator = spaces.GPU
+except Exception:
+    def gpu_decorator(fn):
+        return fn
 
+
+@gpu_decorator
 def analyze_voice_sample(audio_filepath, caller_number, claimed_id, transaction_amount):
     """Executes the full 5-layer SwarSatya forensic voice pipeline on the uploaded audio."""
     if not audio_filepath or not os.path.exists(audio_filepath):
