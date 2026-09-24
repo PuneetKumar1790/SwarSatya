@@ -248,12 +248,17 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
         fn=analyze_voice_sample,
         inputs=[audio_in, caller_in, identity_in, amount_in],
         outputs=[threat_gauge, telemetry_out, transcript_out, copilot_out, fir_out],
-        api_name=False
+        api_name="analyze"
     )
 
     gr.Markdown("""
     ---
-    **API Endpoints:** REST API: `/api/health` • Real-Time WebSocket: `/ws/call/{room_id}` • Statutory Helpline: **1930**
+    **Live SOC Endpoints:**
+    - 🌐 **Interactive Demo:** `/` (ZeroGPU accelerated)
+    - ⚡ **REST Health Check:** `/soc/api/health`
+    - 🎯 **Benchmark Scenarios:** `/soc/api/demo/scenarios`
+    - 🎙️ **Real-Time WebSocket Stream:** `/soc/ws/call/{room_id}`
+    - ⚖️ **Statutory Helpline:** **1930** (National Cyber Crime Reporting Portal)
     """)
 
 
@@ -264,9 +269,11 @@ if __name__ == "__main__":
     server_app, local_url, _ = demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
+        show_error=True,
         prevent_thread_lock=True
     )
     # Mount the full FastAPI app under /soc for REST APIs and WebSockets
     server_app.mount("/soc", fastapi_app)
     demo.block_thread()
+
 
