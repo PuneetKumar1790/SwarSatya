@@ -257,10 +257,16 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
     """)
 
 
-# Mount the full FastAPI app under /soc for REST APIs and WebSockets
-demo.app.mount("/soc", fastapi_app)
-
-app = demo.app
+# Enable Gradio queue for ZeroGPU execution
+demo.queue()
 
 if __name__ == "__main__":
-    demo.queue().launch(server_name="0.0.0.0", server_port=7860, show_api=False)
+    server_app, local_url, _ = demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        prevent_thread_lock=True
+    )
+    # Mount the full FastAPI app under /soc for REST APIs and WebSockets
+    server_app.mount("/soc", fastapi_app)
+    demo.block_thread()
+
