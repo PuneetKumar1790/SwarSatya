@@ -248,7 +248,7 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
         fn=analyze_voice_sample,
         inputs=[audio_in, caller_in, identity_in, amount_in],
         outputs=[threat_gauge, telemetry_out, transcript_out, copilot_out, fir_out],
-        api_name="analyze"
+        api_name=False
     )
 
     gr.Markdown("""
@@ -269,11 +269,11 @@ if __name__ == "__main__":
     server_app, local_url, _ = demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        show_error=True,
         prevent_thread_lock=True
     )
     # Mount the full FastAPI app under /soc for REST APIs and WebSockets
     server_app.mount("/soc", fastapi_app)
     demo.block_thread()
+
 
 
