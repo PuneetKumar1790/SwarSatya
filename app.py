@@ -32,13 +32,19 @@ from app.risk.copilot import scam_copilot
 
 try:
     import spaces
-    gpu_decorator = spaces.GPU
-except Exception:
-    def gpu_decorator(fn):
-        return fn
+except ImportError:
+    import types
+    spaces = types.ModuleType("spaces")
+    def _mock_gpu(*args, **kwargs):
+        def decorator(fn):
+            return fn
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return decorator
+    spaces.GPU = _mock_gpu
 
 
-@gpu_decorator
+@spaces.GPU(duration=60)
 def analyze_voice_sample(audio_filepath, caller_number, claimed_id, transaction_amount):
     """Executes the full 5-layer SwarSatya forensic voice pipeline on the uploaded audio."""
     if not audio_filepath or not os.path.exists(audio_filepath):
@@ -250,8 +256,12 @@ with gr.Blocks(title="SwarSatya - Voice Security Operations Center", theme=gr.th
     """)
 
 
-# Mount Gradio onto FastAPI root so the Hugging Face Space homepage renders the full demo
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+# Merge all FastAPI routes and WebSockets into demo.app
+for route in fastapi_app.router.routes:
+    if route not in demo.app.router.routes:
+        demo.app.router.routes.append(route)
+
+app = demo.app
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    demo.queue().launch(server_name="0.0.0.0", server_port=7860)
