@@ -104,6 +104,7 @@ export default function App() {
 
   const signalingHandlerRef = useRef(null);
   const pendingDemoRef = useRef(null);
+  const demoAudioRef = useRef(null);
 
   // WebSocket Connection
   const connectWebSocket = () => {
@@ -194,10 +195,20 @@ export default function App() {
             ]);
             addLog('RISK', `Update: Overall=${data.overall_risk} (${data.threat_tier}) | Policy: ${data.action_code}`);
           } else if (data.type === 'demo_completed') {
+            if (demoAudioRef.current) {
+              demoAudioRef.current.pause();
+              demoAudioRef.current.currentTime = 0;
+              demoAudioRef.current = null;
+            }
             setIsPlayingDemo(false);
             setActiveDemoScenario(null);
             addLog('SYSTEM', `Demo playback finished.`);
           } else if (data.type === 'demo_stopped') {
+            if (demoAudioRef.current) {
+              demoAudioRef.current.pause();
+              demoAudioRef.current.currentTime = 0;
+              demoAudioRef.current = null;
+            }
             setIsPlayingDemo(false);
             setActiveDemoScenario(null);
           } else if (['offer', 'answer', 'candidate', 'user-joined', 'user-left'].includes(data.type)) {
@@ -262,6 +273,21 @@ export default function App() {
 
   // Demo Trigger Handlers
   const handleStartDemo = (scenarioId) => {
+    // Play voice audio aloud through speakers for screen recording & demo clarity
+    if (demoAudioRef.current) {
+      demoAudioRef.current.pause();
+      demoAudioRef.current.currentTime = 0;
+    }
+    try {
+      const audio = new Audio(`/demo_audio/${scenarioId}.wav`);
+      demoAudioRef.current = audio;
+      audio.play().catch((err) => {
+        console.warn('Audio playback error (browser autoplay policy):', err);
+      });
+    } catch (err) {
+      console.warn('Could not initialize demo audio:', err);
+    }
+
     setTranscript('');
     setDetectedPatterns([]);
     setRiskHistory([]);
@@ -286,6 +312,11 @@ export default function App() {
   };
 
   const handleStopDemo = () => {
+    if (demoAudioRef.current) {
+      demoAudioRef.current.pause();
+      demoAudioRef.current.currentTime = 0;
+      demoAudioRef.current = null;
+    }
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'stop_demo',
@@ -298,6 +329,13 @@ export default function App() {
   };
 
   const resetMetrics = () => {
+    if (demoAudioRef.current) {
+      demoAudioRef.current.pause();
+      demoAudioRef.current.currentTime = 0;
+      demoAudioRef.current = null;
+    }
+    setIsPlayingDemo(false);
+    setActiveDemoScenario(null);
     setIsStreamActive(false);
     setSyntheticRisk(0);
     setSpectralRisk(0);

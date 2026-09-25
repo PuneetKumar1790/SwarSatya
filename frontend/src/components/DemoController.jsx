@@ -10,38 +10,38 @@ export default function DemoController({
   const scenarios = [
     {
       id: 'real_normal',
-      title: 'Scenario 1: Real Voice, Normal Call',
+      title: 'Scenario 1: Genuine Hindi Call (Normal)',
       badge: 'LOW RISK',
       color: '#10b981',
       icon: <CheckCircle2 size={16} color="#10b981" />,
-      desc: 'Genuine human voice discussing everyday work slides. Verifies zero false positive alerts.',
+      desc: 'Genuine human Hindi speech (Office meeting & project slides). Verifies zero false positive alerts.',
       expected: 'Overall: ~0 / Threat: LOW'
     },
     {
       id: 'cloned_normal',
-      title: 'Scenario 2: Cloned Voice, Normal Call',
+      title: 'Scenario 2: Cloned Hindi Voice (Normal)',
       badge: 'CAUTION',
       color: '#06b6d4',
       icon: <Sparkles size={16} color="#06b6d4" />,
-      desc: 'AI-synthesized voice discussing meeting agendas without scam signals. High synthetic risk.',
+      desc: 'AI-synthesized Hindi voice discussing everyday tasks. High synthetic anomaly risk, zero scam intent.',
       expected: 'Synthetic: ~95% / Threat: CAUTION'
     },
     {
       id: 'real_scam',
-      title: 'Scenario 3: Real Voice, Scam Call',
+      title: 'Scenario 3: Genuine Voice (Police Scam)',
       badge: 'HIGH RISK',
       color: '#f97316',
       icon: <AlertTriangle size={16} color="#f97316" />,
-      desc: 'Human voice executing police impersonation and legal threats. High scam pattern risk.',
+      desc: 'Human Hindi voice executing Digital Arrest / Police FIR extortion. Triggers Conversational Scam defense.',
       expected: 'Scam: ~75% / Threat: HIGH'
     },
     {
       id: 'cloned_scam',
-      title: 'Scenario 4: Cloned Voice + Scam Call',
+      title: 'Scenario 4: Cloned Voice + High-Stakes Scam',
       badge: 'CRITICAL',
       color: '#f43f5e',
       icon: <AlertOctagon size={16} color="#f43f5e" />,
-      desc: 'Cloned voice executing emergency urgency + secrecy extortion. Triggers critical alert.',
+      desc: 'Cloned Hindi voice executing emergency airport detention extortion (₹25L transfer). Tier-4 CRITICAL lockdown.',
       expected: 'Both High / Threat: CRITICAL'
     }
   ];
