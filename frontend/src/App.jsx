@@ -21,6 +21,7 @@ export default function App() {
   const [backendHealthy, setBackendHealthy] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [modelsReady, setModelsReady] = useState(false);
+  const [isStreamActive, setIsStreamActive] = useState(false);
 
   // Multi-layer Risk States
   const [syntheticRisk, setSyntheticRisk] = useState(0);
@@ -133,6 +134,7 @@ export default function App() {
           const data = JSON.parse(event.data);
 
           if (data.type === 'risk_update') {
+            setIsStreamActive(true);
             setOverallRisk(data.overall_risk || 0);
             setThreatTier(data.threat_tier || 'LOW');
             setActionCode(data.action_code || 'ALLOW');
@@ -265,6 +267,7 @@ export default function App() {
     setRiskHistory([]);
     setActiveDemoScenario(scenarioId);
     setIsPlayingDemo(true);
+    setIsStreamActive(true);
 
     const payload = {
       type: 'start_demo',
@@ -291,9 +294,11 @@ export default function App() {
     }
     setIsPlayingDemo(false);
     setActiveDemoScenario(null);
+    setIsStreamActive(false);
   };
 
   const resetMetrics = () => {
+    setIsStreamActive(false);
     setSyntheticRisk(0);
     setSpectralRisk(0);
     setProsodyRisk(0);
@@ -624,18 +629,21 @@ export default function App() {
             scamRisk={scamRisk}
             overallRisk={overallRisk}
             threatTier={threatTier}
+            isStreamActive={isStreamActive}
           />
 
           {/* Real-Time Scam Defense Copilot & Counter-Interrogation Scripts */}
           <ScamCopilotCard
             defenseCopilot={defenseCopilot}
             detectedPatterns={detectedPatterns}
+            isStreamActive={isStreamActive}
           />
 
           {/* 4-Signal Deep Radar Breakdown */}
           <MultiSignalRadar
             telemetry={telemetry}
             layerBreakdown={layerBreakdown}
+            isStreamActive={isStreamActive}
           />
 
           {/* Dynamic Risk Progression Timeline */}

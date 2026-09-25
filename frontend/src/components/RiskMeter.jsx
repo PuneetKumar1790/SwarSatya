@@ -9,9 +9,11 @@ export default function RiskMeter({
   contextRisk = 0,
   scamRisk = 0,
   overallRisk = 0,
-  threatTier = 'LOW'
+  threatTier = 'LOW',
+  isStreamActive = false
 }) {
   const getTierColor = (tier) => {
+    if (!isStreamActive) return '#06b6d4';
     switch (tier) {
       case 'CRITICAL': return '#f43f5e';
       case 'HIGH': return '#f97316';
@@ -34,11 +36,11 @@ export default function RiskMeter({
           borderRadius: '6px',
           fontWeight: 800,
           fontSize: '0.75rem',
-          backgroundColor: `${tierColor}20`,
-          color: tierColor,
-          border: `1px solid ${tierColor}50`
+          backgroundColor: isStreamActive ? `${tierColor}20` : 'rgba(6, 182, 212, 0.15)',
+          color: isStreamActive ? tierColor : '#38bdf8',
+          border: `1px solid ${isStreamActive ? `${tierColor}50` : 'rgba(6, 182, 212, 0.3)'}`
         }}>
-          {threatTier} THREAT
+          {isStreamActive ? `${threatTier} THREAT` : 'STANDBY (AWAITING AUDIO)'}
         </span>
       </div>
 
@@ -50,7 +52,7 @@ export default function RiskMeter({
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center',
-          boxShadow: threatTier === 'CRITICAL' ? '0 0 15px rgba(244, 63, 94, 0.2)' : 'none'
+          boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 0 15px rgba(244, 63, 94, 0.2)' : 'none'
         }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
             Overall Fused Risk
@@ -58,12 +60,14 @@ export default function RiskMeter({
           <div style={{
             fontSize: '2.4rem',
             fontWeight: 800,
-            color: tierColor,
+            color: isStreamActive ? tierColor : '#38bdf8',
             fontFamily: 'JetBrains Mono',
             letterSpacing: '-0.03em'
           }}>
-            {Math.round(overallRisk)}
-            <span style={{ fontSize: '1rem', fontWeight: 500 }}>/100</span>
+            {isStreamActive ? Math.round(overallRisk) : 0}
+            <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+              {isStreamActive ? '/100' : ' / 100 (STANDBY)'}
+            </span>
           </div>
           <div style={{
             marginTop: '0.4rem',
@@ -74,7 +78,7 @@ export default function RiskMeter({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${Math.min(100, Math.max(0, overallRisk))}%`,
+              width: `${isStreamActive ? Math.min(100, Math.max(0, overallRisk)) : 0}%`,
               height: '100%',
               backgroundColor: tierColor,
               transition: 'width 0.3s ease'
@@ -100,7 +104,7 @@ export default function RiskMeter({
             color: '#06b6d4',
             fontFamily: 'JetBrains Mono'
           }}>
-            {Math.round(syntheticRisk)}%
+            {isStreamActive ? `${Math.round(syntheticRisk)}%` : '--%'}
           </div>
           <div style={{
             marginTop: '0.4rem',
@@ -111,7 +115,7 @@ export default function RiskMeter({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${Math.min(100, Math.max(0, syntheticRisk))}%`,
+              width: `${isStreamActive ? Math.min(100, Math.max(0, syntheticRisk)) : 0}%`,
               height: '100%',
               backgroundColor: '#06b6d4',
               transition: 'width 0.3s ease'
@@ -137,7 +141,7 @@ export default function RiskMeter({
             color: '#38bdf8',
             fontFamily: 'JetBrains Mono'
           }}>
-            {Math.round(spectralRisk)}%
+            {isStreamActive ? `${Math.round(spectralRisk)}%` : '--%'}
           </div>
           <div style={{
             marginTop: '0.4rem',
@@ -148,7 +152,7 @@ export default function RiskMeter({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${Math.min(100, Math.max(0, spectralRisk))}%`,
+              width: `${isStreamActive ? Math.min(100, Math.max(0, spectralRisk)) : 0}%`,
               height: '100%',
               backgroundColor: '#38bdf8',
               transition: 'width 0.3s ease'
@@ -165,16 +169,16 @@ export default function RiskMeter({
           textAlign: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
-            <UserCheck size={14} color={speakerSimilarity >= 60 ? '#10b981' : '#f43f5e'} />
+            <UserCheck size={14} color={!isStreamActive ? '#9ca3af' : (speakerSimilarity >= 60 ? '#10b981' : '#f43f5e')} />
             Speaker Profile Match
           </div>
           <div style={{
             fontSize: '1.9rem',
             fontWeight: 700,
-            color: speakerSimilarity >= 60 ? '#10b981' : '#f43f5e',
+            color: !isStreamActive ? '#9ca3af' : (speakerSimilarity >= 60 ? '#10b981' : '#f43f5e'),
             fontFamily: 'JetBrains Mono'
           }}>
-            {Math.round(speakerSimilarity)}%
+            {isStreamActive ? `${Math.round(speakerSimilarity)}%` : '--%'}
           </div>
           <div style={{
             marginTop: '0.4rem',
@@ -185,7 +189,7 @@ export default function RiskMeter({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${Math.min(100, Math.max(0, speakerSimilarity))}%`,
+              width: `${isStreamActive ? Math.min(100, Math.max(0, speakerSimilarity)) : 0}%`,
               height: '100%',
               backgroundColor: speakerSimilarity >= 60 ? '#10b981' : '#f43f5e',
               transition: 'width 0.3s ease'
@@ -211,7 +215,7 @@ export default function RiskMeter({
             color: '#f59e0b',
             fontFamily: 'JetBrains Mono'
           }}>
-            {Math.round(Math.max(contextRisk, scamRisk))}%
+            {isStreamActive ? `${Math.round(Math.max(contextRisk, scamRisk))}%` : '--%'}
           </div>
           <div style={{
             marginTop: '0.4rem',

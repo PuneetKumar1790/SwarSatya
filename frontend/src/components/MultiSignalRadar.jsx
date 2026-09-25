@@ -1,7 +1,7 @@
 import React from 'react';
 import { Cpu, Activity, UserCheck, ShieldAlert, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
 
-export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }) {
+export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {}, isStreamActive = false }) {
   const spectral = telemetry.spectral || {};
   const prosody = telemetry.prosody || {};
   const speaker = telemetry.speaker || {};
@@ -17,10 +17,15 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
 
   return (
     <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
-      <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Activity size={18} color="var(--accent-cyan)" />
-        Multi-Layer Voice Authenticity Telemetry (4 Core Detection Signals)
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Activity size={18} color="var(--accent-cyan)" />
+          Multi-Layer Voice Authenticity Telemetry (4 Core Detection Signals)
+        </h3>
+        <span style={{ fontSize: '0.72rem', color: isStreamActive ? '#10b981' : '#38bdf8', background: isStreamActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(6, 182, 212, 0.15)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+          {isStreamActive ? 'Live Telemetry Active' : 'Sensors on Standby'}
+        </span>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
         {/* Signal 1: Acoustic & Spectral Analysis */}
@@ -30,21 +35,23 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
               <Cpu size={15} />
               Acoustic & Spectral AI
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: spectralScore > 40 ? '#f43f5e' : '#10b981' }}>
-              {Math.round(spectralScore)}% Risk
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: !isStreamActive ? '#9ca3af' : (spectralScore > 40 ? '#f43f5e' : '#10b981') }}>
+              {isStreamActive ? `${Math.round(spectralScore)}% Risk` : '--% Risk'}
             </span>
           </div>
 
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            Vocoder rolloff: {spectral.rolloff_ratio || 0} Hz | Phase jitter: {spectral.phase_irregularity || 0}%
+            {isStreamActive ? `Vocoder rolloff: ${spectral.rolloff_ratio || 0} Hz | Phase jitter: ${spectral.phase_irregularity || 0}%` : 'STFT Spectral & Phase Analyzer on Standby'}
           </div>
 
           <div style={{ width: '100%', height: '5px', background: '#1f2937', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, Math.max(0, spectralScore))}%`, height: '100%', background: spectralScore > 50 ? '#f43f5e' : '#38bdf8', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${isStreamActive ? Math.min(100, Math.max(0, spectralScore)) : 0}%`, height: '100%', background: spectralScore > 50 ? '#f43f5e' : '#38bdf8', transition: 'width 0.3s ease' }} />
           </div>
 
           <div style={{ marginTop: '0.6rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            {spectral.artifacts_detected && spectral.artifacts_detected.length > 0 ? (
+            {!isStreamActive ? (
+              <span style={{ color: '#9ca3af' }}>⏸ Awaiting audio input</span>
+            ) : spectral.artifacts_detected && spectral.artifacts_detected.length > 0 ? (
               <span style={{ color: '#f87171' }}>⚠ {spectral.artifacts_detected[0]}</span>
             ) : (
               <span style={{ color: '#10b981' }}>✓ Coherent STFT phase progression</span>
@@ -59,22 +66,24 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
               <Activity size={15} />
               Prosody & Pitch Contour
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: prosodyScore > 40 ? '#f43f5e' : '#10b981' }}>
-              {Math.round(prosodyScore)}% Anomaly
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: !isStreamActive ? '#9ca3af' : (prosodyScore > 40 ? '#f43f5e' : '#10b981') }}>
+              {isStreamActive ? `${Math.round(prosodyScore)}% Anomaly` : '--% Anomaly'}
             </span>
           </div>
 
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            Pitch Std: {prosody.pitch_std_hz || 0} Hz | Pause ratio: {prosody.pause_ratio || 0}%
+            {isStreamActive ? `Pitch Std: ${prosody.pitch_std_hz || 0} Hz | Pause ratio: ${prosody.pause_ratio || 0}%` : 'Pitch & Prosody Dynamics on Standby'}
           </div>
 
           <div style={{ width: '100%', height: '5px', background: '#1f2937', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, Math.max(0, prosodyScore))}%`, height: '100%', background: prosodyScore > 50 ? '#f43f5e' : '#a78bfa', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${isStreamActive ? Math.min(100, Math.max(0, prosodyScore)) : 0}%`, height: '100%', background: prosodyScore > 50 ? '#f43f5e' : '#a78bfa', transition: 'width 0.3s ease' }} />
           </div>
 
           <div style={{ marginTop: '0.6rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            {prosody.prosody_flags && prosody.prosody_flags.length > 0 ? (
-              <span style={{ color: '#fca5a5' }}>⚠ {prosody.prosody_flags[0]}</span>
+            {!isStreamActive ? (
+              <span style={{ color: '#9ca3af' }}>⏸ Awaiting audio input</span>
+            ) : prosodyScore > 40 ? (
+              <span style={{ color: '#f87171' }}>⚠ Robotic / flat unnatural cadence</span>
             ) : (
               <span style={{ color: '#10b981' }}>✓ Natural human pitch dynamics</span>
             )}
@@ -88,21 +97,23 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
               <UserCheck size={15} />
               Speaker Biometric Match
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: speakerSim < 55 ? '#f43f5e' : '#10b981' }}>
-              {Math.round(speakerSim)}% Match
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: !isStreamActive ? '#9ca3af' : (speakerSim < 55 ? '#f43f5e' : '#10b981') }}>
+              {isStreamActive ? `${Math.round(speakerSim)}% Match` : '--% Match'}
             </span>
           </div>
 
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            Enrolled: {speaker.claimed_identity || 'CFO Rahul Sharma'}
+            Enrolled: {speaker.claimed_identity || 'CFO Rahul Sharma'} {!isStreamActive && '(Awaiting Voice)'}
           </div>
 
           <div style={{ width: '100%', height: '5px', background: '#1f2937', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, Math.max(0, speakerSim))}%`, height: '100%', background: speakerSim < 55 ? '#f43f5e' : '#10b981', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${isStreamActive ? Math.min(100, Math.max(0, speakerSim)) : 0}%`, height: '100%', background: speakerSim < 55 ? '#f43f5e' : '#10b981', transition: 'width 0.3s ease' }} />
           </div>
 
           <div style={{ marginTop: '0.6rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            {speakerSim >= 60 ? (
+            {!isStreamActive ? (
+              <span style={{ color: '#9ca3af' }}>⏸ Voiceprint verification on Standby</span>
+            ) : speakerSim >= 60 ? (
               <span style={{ color: '#10b981' }}>✓ Consistent with enrolled CFO voice</span>
             ) : (
               <span style={{ color: '#f87171' }}>⚠ IDENTITY MISMATCH DETECTED</span>
@@ -117,8 +128,8 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
               <ShieldAlert size={15} />
               Conversational Scam Rules
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: scamScore > 40 ? '#f43f5e' : '#10b981' }}>
-              {Math.round(scamScore)}% Trigger
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono', color: !isStreamActive ? '#9ca3af' : (scamScore > 40 ? '#f43f5e' : '#10b981') }}>
+              {isStreamActive ? `${Math.round(scamScore)}% Trigger` : '--% Trigger'}
             </span>
           </div>
 
@@ -127,11 +138,13 @@ export default function MultiSignalRadar({ telemetry = {}, layerBreakdown = {} }
           </div>
 
           <div style={{ width: '100%', height: '5px', background: '#1f2937', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, Math.max(0, scamScore))}%`, height: '100%', background: scamScore > 50 ? '#f43f5e' : '#f59e0b', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${isStreamActive ? Math.min(100, Math.max(0, scamScore)) : 0}%`, height: '100%', background: scamScore > 50 ? '#f43f5e' : '#f59e0b', transition: 'width 0.3s ease' }} />
           </div>
 
           <div style={{ marginTop: '0.6rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            {scamScore > 40 ? (
+            {!isStreamActive ? (
+              <span style={{ color: '#9ca3af' }}>⏸ NLP scanner on Standby</span>
+            ) : scamScore > 40 ? (
               <span style={{ color: '#fca5a5' }}>⚠ Urgent social engineering patterns</span>
             ) : (
               <span style={{ color: '#10b981' }}>✓ No coercive extortion language</span>

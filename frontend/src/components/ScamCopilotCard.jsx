@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Bot, Copy, Check, MessageSquareWarning, ShieldCheck, Scale, PhoneCall } from 'lucide-react';
 
-export default function ScamCopilotCard({ defenseCopilot = {}, detectedPatterns = [] }) {
+export default function ScamCopilotCard({ defenseCopilot = {}, detectedPatterns = [], isStreamActive = false }) {
   const [copiedIdx, setCopiedIdx] = useState(null);
 
   const scripts = defenseCopilot.smart_counter_scripts || [
@@ -44,9 +44,19 @@ export default function ScamCopilotCard({ defenseCopilot = {}, detectedPatterns 
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #10b98140' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          fontSize: '0.72rem',
+          color: isStreamActive ? '#10b981' : '#38bdf8',
+          background: isStreamActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(6, 182, 212, 0.15)',
+          padding: '0.2rem 0.6rem',
+          borderRadius: '4px',
+          border: `1px solid ${isStreamActive ? '#10b98140' : 'rgba(6, 182, 212, 0.3)'}`
+        }}>
           <ShieldCheck size={13} />
-          <span>Active In-Call Defense Co-Pilot</span>
+          <span>{isStreamActive ? 'Active In-Call Defense Co-Pilot' : 'Co-Pilot Standby (Awaiting Audio)'}</span>
         </div>
       </div>
 
@@ -59,39 +69,54 @@ export default function ScamCopilotCard({ defenseCopilot = {}, detectedPatterns 
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {scripts.map((script, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: '#111827',
-                  border: '1px solid #1f2937',
-                  borderRadius: '6px',
-                  padding: '0.6rem 0.75rem',
-                  fontSize: '0.78rem',
-                  color: '#e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.5rem'
-                }}
-              >
-                <span style={{ lineHeight: 1.35 }}>{script}</span>
-                <button
-                  onClick={() => handleCopy(script, idx)}
-                  title="Copy response to clipboard"
+            {!isStreamActive ? (
+              <div style={{
+                background: '#111827',
+                border: '1px dashed #374151',
+                borderRadius: '6px',
+                padding: '0.9rem',
+                fontSize: '0.78rem',
+                color: '#9ca3af',
+                textAlign: 'center',
+                lineHeight: 1.4
+              }}>
+                🎙️ <strong>Co-Pilot Standby:</strong> Awaiting incoming call audio or scenario demo. Click <em>"Play Scenario"</em> below or speak into your microphone to generate real-time counter-interrogation scripts.
+              </div>
+            ) : (
+              scripts.map((script, idx) => (
+                <div
+                  key={idx}
                   style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: copiedIdx === idx ? '#10b981' : '#9ca3af',
-                    cursor: 'pointer',
-                    padding: '0.2rem',
-                    flexShrink: 0
+                    background: '#111827',
+                    border: '1px solid #1f2937',
+                    borderRadius: '6px',
+                    padding: '0.6rem 0.75rem',
+                    fontSize: '0.78rem',
+                    color: '#e5e7eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem'
                   }}
                 >
-                  {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-              </div>
-            ))}
+                  <span style={{ lineHeight: 1.35 }}>{script}</span>
+                  <button
+                    onClick={() => handleCopy(script, idx)}
+                    title="Copy response to clipboard"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: copiedIdx === idx ? '#10b981' : '#9ca3af',
+                      cursor: 'pointer',
+                      padding: '0.2rem',
+                      flexShrink: 0
+                    }}
+                  >
+                    {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -104,17 +129,25 @@ export default function ScamCopilotCard({ defenseCopilot = {}, detectedPatterns 
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              {legalCitations.map((cit, idx) => (
-                <div key={idx} style={{ fontSize: '0.75rem', color: '#fcd34d', background: '#f59e0b15', padding: '0.5rem 0.65rem', borderRadius: '6px', border: '1px solid #f59e0b30', lineHeight: 1.35 }}>
-                  ⚖ {cit}
+              {!isStreamActive ? (
+                <div style={{ fontSize: '0.75rem', color: '#9ca3af', background: 'rgba(245, 158, 11, 0.08)', padding: '0.85rem', borderRadius: '6px', border: '1px dashed #f59e0b30', lineHeight: 1.4 }}>
+                  ⚖ <strong>Statutory Advice on Standby:</strong> Legal protections under Section 66D IT Act and Section 319 BNS will activate automatically upon detecting coercive or extortion patterns.
                 </div>
-              ))}
+              ) : (
+                <>
+                  {legalCitations.map((cit, idx) => (
+                    <div key={idx} style={{ fontSize: '0.75rem', color: '#fcd34d', background: '#f59e0b15', padding: '0.5rem 0.65rem', borderRadius: '6px', border: '1px solid #f59e0b30', lineHeight: 1.35 }}>
+                      ⚖ {cit}
+                    </div>
+                  ))}
 
-              {safetyActions.map((act, idx) => (
-                <div key={idx} style={{ fontSize: '0.75rem', color: '#f87171', background: '#ef444415', padding: '0.5rem 0.65rem', borderRadius: '6px', border: '1px solid #ef444430', lineHeight: 1.35 }}>
-                  🛑 {act}
-                </div>
-              ))}
+                  {safetyActions.map((act, idx) => (
+                    <div key={idx} style={{ fontSize: '0.75rem', color: '#f87171', background: '#ef444415', padding: '0.5rem 0.65rem', borderRadius: '6px', border: '1px solid #ef444430', lineHeight: 1.35 }}>
+                      🛑 {act}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
 
