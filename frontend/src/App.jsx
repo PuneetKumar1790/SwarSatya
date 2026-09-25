@@ -580,6 +580,7 @@ export default function App() {
             threatTier={threatTier}
             recommendedAction={recommendedAction}
             requiresHold={requiresHold || transactionHeld}
+            isStreamActive={isStreamActive}
             onOpenTransferModal={() => setIsTransferModalOpen(true)}
             onOpenMfaModal={() => {
               setVerifyMode('mfa');

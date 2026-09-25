@@ -7,43 +7,57 @@ export default function AlertPanel({
   requiresHold = false,
   onOpenTransferModal,
   onOpenMfaModal,
-  onOpenCallbackModal
+  onOpenCallbackModal,
+  isStreamActive = false
 }) {
   const getBannerConfig = () => {
+    if (!isStreamActive) {
+      return {
+        icon: <ShieldCheck size={22} color="#38bdf8" />,
+        bg: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85))',
+        border: 'rgba(56, 189, 248, 0.25)',
+        title: 'VOICE SOC MISSION CONTROL • PIPELINE ARMED & STANDBY',
+        textColor: '#38bdf8'
+      };
+    }
     switch (threatTier) {
       case 'CRITICAL':
         return {
           icon: <AlertOctagon size={24} color="#ffffff" />,
           bg: 'linear-gradient(135deg, #991b1b, #ef4444)',
           border: '#f87171',
-          title: 'CRITICAL VOICE SECURITY THREAT DETECTED'
+          title: 'CRITICAL VOICE SECURITY THREAT DETECTED',
+          textColor: '#ffffff'
         };
       case 'HIGH':
         return {
           icon: <AlertTriangle size={24} color="#ffffff" />,
           bg: 'linear-gradient(135deg, #c2410c, #f97316)',
           border: '#fb923c',
-          title: 'HIGH RISK: SUSPECTED VOICE CLONE / EXTORTION'
+          title: 'HIGH RISK: SUSPECTED VOICE CLONE / EXTORTION',
+          textColor: '#ffffff'
         };
       case 'CAUTION':
         return {
           icon: <AlertTriangle size={24} color="#ffffff" />,
           bg: 'linear-gradient(135deg, #b45309, #f59e0b)',
           border: '#fcd34d',
-          title: 'CAUTION: ABNORMAL VOICE OR UNREGISTERED LINE'
+          title: 'CAUTION: ABNORMAL VOICE OR UNREGISTERED LINE',
+          textColor: '#ffffff'
         };
       default:
         return {
-          icon: <ShieldCheck size={24} color="#10b981" />,
-          bg: 'rgba(16, 185, 129, 0.1)',
-          border: 'rgba(16, 185, 129, 0.3)',
-          title: 'PROTECTED: CALL BIOMETRICS VERIFIED'
+          icon: <ShieldCheck size={24} color="#34d399" />,
+          bg: 'linear-gradient(135deg, rgba(6, 78, 59, 0.4), rgba(5, 150, 105, 0.2))',
+          border: 'rgba(52, 211, 153, 0.4)',
+          title: 'CALL VERIFIED: AUTHENTIC HUMAN & BIOMETRIC MATCH',
+          textColor: '#34d399'
         };
     }
   };
 
   const config = getBannerConfig();
-  const isElevated = threatTier === 'HIGH' || threatTier === 'CRITICAL' || requiresHold;
+  const isElevated = isStreamActive && (threatTier === 'HIGH' || threatTier === 'CRITICAL' || requiresHold);
 
   return (
     <div
@@ -51,9 +65,10 @@ export default function AlertPanel({
         background: config.bg,
         border: `1px solid ${config.border}`,
         borderRadius: '12px',
-        padding: '1.25rem',
+        padding: '1.15rem 1.35rem',
         marginBottom: '1.25rem',
-        boxShadow: threatTier === 'CRITICAL' ? '0 0 25px rgba(239, 68, 68, 0.4)' : 'none',
+        boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 0 30px rgba(239, 68, 68, 0.35)' : '0 4px 20px rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(10px)',
         transition: 'all 0.3s ease'
       }}
     >
@@ -66,12 +81,12 @@ export default function AlertPanel({
               fontSize: '0.95rem',
               fontWeight: 800,
               letterSpacing: '0.02em',
-              color: threatTier === 'LOW' ? '#10b981' : '#ffffff'
+              color: config.textColor
             }}>
               {config.title}
             </h4>
 
-            {requiresHold && (
+            {requiresHold && isStreamActive && (
               <span style={{
                 background: '#ffffff',
                 color: '#b91c1c',
@@ -90,10 +105,12 @@ export default function AlertPanel({
             margin: '0 0 0.75rem 0',
             fontSize: '0.85rem',
             lineHeight: 1.4,
-            color: threatTier === 'LOW' ? '#9ca3af' : 'rgba(255, 255, 255, 0.95)',
+            color: !isStreamActive ? '#94a3b8' : threatTier === 'LOW' ? '#9ca3af' : 'rgba(255, 255, 255, 0.95)',
             fontWeight: 500
           }}>
-            {recommendedAction}
+            {!isStreamActive 
+              ? 'Real-time pipeline is online and listening. Trigger an automated scenario below or start live microphone capture to initiate unified voice biometric verification and scam defense.'
+              : recommendedAction}
           </p>
 
           {/* Quick-Action Command Buttons */}
