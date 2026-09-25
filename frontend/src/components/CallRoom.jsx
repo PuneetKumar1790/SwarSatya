@@ -296,21 +296,22 @@ export default function CallRoom({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #06b6d4, #2563eb)',
-            padding: '0.65rem',
+            background: 'rgba(99, 102, 241, 0.12)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            padding: '0.6rem',
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <Shield size={22} color="#ffffff" />
+            <Radio size={20} color="#818cf8" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>
-              WebRTC Live Call Room
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
+              WebRTC Live Telephony Bridge
             </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
-              Two-way audio stream with synchronized 16kHz AI security fork
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0.15rem 0 0 0' }}>
+              Real-time bi-directional audio with synchronized 16kHz forensic stream
             </p>
           </div>
         </div>
@@ -323,12 +324,12 @@ export default function CallRoom({
               gap: '0.4rem',
               fontSize: '0.75rem',
               color: 'var(--text-secondary)',
-              background: '#0d1322',
+              background: 'rgba(15, 23, 42, 0.6)',
               padding: '0.3rem 0.6rem',
               borderRadius: '6px',
-              border: '1px solid var(--border-card)'
+              border: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
-              <Users size={14} color="#06b6d4" />
+              <Users size={14} color="#818cf8" />
               <span>{peersCount} Participant{peersCount > 1 ? 's' : ''}</span>
             </div>
           )}
@@ -339,25 +340,27 @@ export default function CallRoom({
             gap: '0.4rem',
             padding: '0.3rem 0.75rem',
             borderRadius: '9999px',
-            fontSize: '0.75rem',
+            fontSize: '0.72rem',
             fontWeight: 600,
             textTransform: 'uppercase',
-            background: callState === 'connected' ? 'rgba(16, 185, 129, 0.15)' :
-                        callState === 'calling' ? 'rgba(6, 182, 212, 0.15)' :
-                        callState === 'joining' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(107, 114, 128, 0.15)',
-            color: callState === 'connected' ? '#10b981' :
-                   callState === 'calling' ? '#06b6d4' :
-                   callState === 'joining' ? '#f59e0b' : '#9ca3af',
-            border: `1px solid ${callState === 'connected' ? '#10b98140' :
-                                 callState === 'calling' ? '#06b6d440' : '#4b556340'}`
+            letterSpacing: '0.04em',
+            background: callState === 'connected' ? 'rgba(16, 185, 129, 0.1)' :
+                        callState === 'calling' ? 'rgba(99, 102, 241, 0.1)' :
+                        callState === 'joining' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+            color: callState === 'connected' ? '#34d399' :
+                   callState === 'calling' ? '#818cf8' :
+                   callState === 'joining' ? '#fbbf24' : '#94a3b8',
+            border: `1px solid ${callState === 'connected' ? 'rgba(52, 211, 153, 0.3)' :
+                                 callState === 'calling' ? 'rgba(129, 140, 248, 0.3)' :
+                                 callState === 'joining' ? 'rgba(251, 191, 36, 0.3)' : 'rgba(255, 255, 255, 0.08)'}`
           }}>
             <span style={{
-              width: 8,
-              height: 8,
+              width: 6,
+              height: 6,
               borderRadius: '50%',
               backgroundColor: callState === 'connected' ? '#10b981' :
-                               callState === 'calling' ? '#06b6d4' :
-                               callState === 'joining' ? '#f59e0b' : '#9ca3af'
+                               callState === 'calling' ? '#6366f1' :
+                               callState === 'joining' ? '#f59e0b' : '#64748b'
             }} />
             {callState === 'calling' ? 'Awaiting Peer' : callState}
           </span>
@@ -374,12 +377,12 @@ export default function CallRoom({
           style={{
             flex: '1',
             minWidth: '200px',
-            background: '#0d1322',
-            border: '1px solid var(--border-card)',
+            background: 'rgba(15, 23, 42, 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             color: 'var(--text-primary)',
             padding: '0.65rem 1rem',
             borderRadius: '8px',
-            fontSize: '0.9rem',
+            fontSize: '0.88rem',
             outline: 'none'
           }}
         />
@@ -391,17 +394,18 @@ export default function CallRoom({
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
               color: '#ffffff',
-              border: 'none',
+              border: '1px solid rgba(129, 140, 248, 0.35)',
               padding: '0.65rem 1.25rem',
               borderRadius: '8px',
-              fontSize: '0.9rem',
+              fontSize: '0.88rem',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(79, 70, 229, 0.3)'
             }}
           >
-            <Phone size={16} />
+            <Phone size={15} />
             Start WebRTC Call
           </button>
         ) : (

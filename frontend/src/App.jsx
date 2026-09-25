@@ -322,7 +322,7 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '1.25rem' }}>
-      {/* Top Header */}
+      {/* Header */}
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -335,218 +335,109 @@ export default function App() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #06b6d4, #2563eb)',
-            padding: '0.65rem',
-            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+            padding: '0.6rem',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)'
+            boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)'
           }}>
-            <Shield size={26} color="#ffffff" />
+            <Shield size={24} color="#ffffff" />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>SwarSatya</h1>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>SwarSatya</h1>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#a5b4fc', background: 'rgba(99, 102, 241, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
                 स्वर सत्य • Voice Security Operations Center (SIH #26104)
               </span>
             </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0.15rem 0 0 0' }}>
               Multi-Layer Real-Time Voice Biometric & Impersonation Scam Defense Platform
             </p>
           </div>
         </div>
 
-        {/* Status Indicators */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            padding: '0.35rem 0.75rem',
-            borderRadius: '8px',
-            backgroundColor: 'rgba(59, 130, 246, 0.15)',
-            color: '#60a5fa',
-            border: '1px solid rgba(59, 130, 246, 0.3)'
-          }} title={`Connected to: ${BACKEND_URL}`}>
-            <Zap size={13} color="#60a5fa" />
-            HF ZERO-GPU: {BACKEND_URL.includes('hf.space') ? 'CLOUD (A10G)' : 'LOCAL'}
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            padding: '0.35rem 0.75rem',
-            borderRadius: '8px',
-            backgroundColor: backendHealthy ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            color: backendHealthy ? '#10b981' : '#f87171',
-            border: `1px solid ${backendHealthy ? '#10b98140' : '#f8717140'}`
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: backendHealthy ? '#10b981' : '#f87171' }} />
-            ML CORE: {backendHealthy ? 'ACTIVE (MULTI-LAYER)' : 'OFFLINE'}
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            padding: '0.35rem 0.75rem',
-            borderRadius: '8px',
-            backgroundColor: wsConnected ? 'rgba(6, 182, 212, 0.15)' : 'rgba(107, 114, 128, 0.15)',
-            color: wsConnected ? '#06b6d4' : '#9ca3af',
-            border: `1px solid ${wsConnected ? '#06b6d440' : '#4b556340'}`
-          }}>
-            {wsConnected ? <Wifi size={13} /> : <WifiOff size={13} />}
-            STREAM: {wsConnected ? 'CONNECTED' : 'DISCONNECTED'}
-          </div>
-
-          {lastLatencyMs !== null && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
-              background: '#0d1322',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border-card)'
-            }}>
-              <Clock size={13} color="#06b6d4" />
-              <span>Pipeline: {lastLatencyMs} ms</span>
+        {/* Telemetry Cluster */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <div className="telemetry-cluster" title={`Connected to: ${BACKEND_URL}`}>
+            <div className="telemetry-item">
+              <span className="status-dot blue" />
+              <span>HF Zero-GPU: {BACKEND_URL.includes('hf.space') ? 'A10G Cloud' : 'Local'}</span>
             </div>
-          )}
+            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)' }} />
+            <div className="telemetry-item">
+              <span className={`status-dot ${backendHealthy ? 'green' : 'red'}`} />
+              <span>ML Core: {backendHealthy ? 'Multi-Layer Active' : 'Offline'}</span>
+            </div>
+            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)' }} />
+            <div className="telemetry-item">
+              <span className={`status-dot ${wsConnected ? 'green' : 'amber'}`} />
+              <span>Stream: {wsConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+            {lastLatencyMs !== null && (
+              <>
+                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.1)' }} />
+                <div className="telemetry-item mono" style={{ color: '#38bdf8' }}>
+                  <Clock size={12} />
+                  <span>{lastLatencyMs} ms</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {/* Navigation & Action Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {/* Segmented Tab Controls */}
+        <div className="nav-segmented-container">
           <button
             onClick={() => setActiveTab('dashboard')}
-            style={{
-              padding: '0.55rem 1.1rem',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'dashboard' ? 'var(--accent-cyan)' : '#1f2937',
-              color: activeTab === 'dashboard' ? '#0a0f1d' : '#9ca3af',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}
+            className={`nav-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
           >
-            <Shield size={15} />
+            <Shield size={14} />
             Live Voice SOC
           </button>
 
           <button
             onClick={() => setActiveTab('governance')}
-            style={{
-              padding: '0.55rem 1.1rem',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'governance' ? 'var(--accent-cyan)' : '#1f2937',
-              color: activeTab === 'governance' ? '#0a0f1d' : '#9ca3af',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}
+            className={`nav-tab-btn ${activeTab === 'governance' ? 'active' : ''}`}
           >
-            <Sliders size={15} />
-            Policy, Governance & Incidents
+            <Sliders size={14} />
+            Policy & Incidents
           </button>
 
           <button
             onClick={() => setActiveTab('inspector')}
-            style={{
-              padding: '0.55rem 1.1rem',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'inspector' ? 'var(--accent-cyan)' : '#1f2937',
-              color: activeTab === 'inspector' ? '#0a0f1d' : '#9ca3af',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}
+            className={`nav-tab-btn ${activeTab === 'inspector' ? 'active' : ''}`}
           >
-            <Terminal size={15} />
+            <Terminal size={14} />
             Packet Inspector ({logs.length})
           </button>
         </div>
 
+        {/* Cohesive Secondary Actions */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => setIsLegalModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '0.45rem 0.95rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
+            className="btn-header-secondary"
           >
-            <Scale size={13} />
+            <Scale size={13} color="#f59e0b" />
             1930 Legal Helpdesk
           </button>
 
           <button
             onClick={() => setIsFeedbackModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '0.45rem 0.95rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
+            className="btn-header-secondary"
           >
-            <MessageSquarePlus size={13} />
+            <MessageSquarePlus size={13} color="#10b981" />
             Feedback Forum
           </button>
 
           <button
             onClick={() => setIsTransferModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              background: 'linear-gradient(135deg, #06b6d4, #2563eb)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '0.45rem 0.95rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
+            className="btn-header-primary"
           >
             <IndianRupee size={13} />
             Execute Bank Transfer
@@ -554,20 +445,10 @@ export default function App() {
 
           <button
             onClick={resetMetrics}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              background: 'transparent',
-              border: '1px solid var(--border-card)',
-              color: 'var(--text-secondary)',
-              padding: '0.45rem 0.85rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              cursor: 'pointer'
-            }}
+            className="btn-header-secondary"
+            title="Reset telemetry meters"
           >
-            <RefreshCw size={13} />
+            <RefreshCw size={12} color="#94a3b8" />
             Reset
           </button>
         </div>

@@ -14,44 +14,59 @@ export default function AlertPanel({
     if (!isStreamActive) {
       return {
         icon: <ShieldCheck size={22} color="#38bdf8" />,
-        bg: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85))',
-        border: 'rgba(56, 189, 248, 0.25)',
+        bg: 'linear-gradient(90deg, rgba(56, 189, 248, 0.06) 0%, rgba(15, 23, 42, 0.75) 100%)',
+        border: 'rgba(56, 189, 248, 0.18)',
+        accentBorder: '#38bdf8',
         title: 'VOICE SOC MISSION CONTROL • PIPELINE ARMED & STANDBY',
-        textColor: '#38bdf8'
+        textColor: '#e2e8f0',
+        badgeBg: 'rgba(56, 189, 248, 0.1)',
+        badgeColor: '#38bdf8'
       };
     }
     switch (threatTier) {
       case 'CRITICAL':
         return {
-          icon: <AlertOctagon size={24} color="#ffffff" />,
-          bg: 'linear-gradient(135deg, #991b1b, #ef4444)',
-          border: '#f87171',
+          icon: <AlertOctagon size={22} color="#f43f5e" />,
+          bg: 'linear-gradient(90deg, rgba(244, 63, 94, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          border: 'rgba(244, 63, 94, 0.3)',
+          accentBorder: '#f43f5e',
           title: 'CRITICAL VOICE SECURITY THREAT DETECTED',
-          textColor: '#ffffff'
+          textColor: '#fda4af',
+          badgeBg: 'rgba(244, 63, 94, 0.15)',
+          badgeColor: '#f43f5e'
         };
       case 'HIGH':
         return {
-          icon: <AlertTriangle size={24} color="#ffffff" />,
-          bg: 'linear-gradient(135deg, #c2410c, #f97316)',
-          border: '#fb923c',
+          icon: <AlertTriangle size={22} color="#f97316" />,
+          bg: 'linear-gradient(90deg, rgba(249, 115, 22, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          border: 'rgba(249, 115, 22, 0.25)',
+          accentBorder: '#f97316',
           title: 'HIGH RISK: SUSPECTED VOICE CLONE / EXTORTION',
-          textColor: '#ffffff'
+          textColor: '#fed7aa',
+          badgeBg: 'rgba(249, 115, 22, 0.15)',
+          badgeColor: '#f97316'
         };
       case 'CAUTION':
         return {
-          icon: <AlertTriangle size={24} color="#ffffff" />,
-          bg: 'linear-gradient(135deg, #b45309, #f59e0b)',
-          border: '#fcd34d',
+          icon: <AlertTriangle size={22} color="#f59e0b" />,
+          bg: 'linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          border: 'rgba(245, 158, 11, 0.22)',
+          accentBorder: '#f59e0b',
           title: 'CAUTION: ABNORMAL VOICE OR UNREGISTERED LINE',
-          textColor: '#ffffff'
+          textColor: '#fde68a',
+          badgeBg: 'rgba(245, 158, 11, 0.15)',
+          badgeColor: '#f59e0b'
         };
       default:
         return {
-          icon: <ShieldCheck size={24} color="#34d399" />,
-          bg: 'linear-gradient(135deg, rgba(6, 78, 59, 0.4), rgba(5, 150, 105, 0.2))',
-          border: 'rgba(52, 211, 153, 0.4)',
+          icon: <ShieldCheck size={22} color="#10b981" />,
+          bg: 'linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          border: 'rgba(16, 185, 129, 0.25)',
+          accentBorder: '#10b981',
           title: 'CALL VERIFIED: AUTHENTIC HUMAN & BIOMETRIC MATCH',
-          textColor: '#34d399'
+          textColor: '#a7f3d0',
+          badgeBg: 'rgba(16, 185, 129, 0.15)',
+          badgeColor: '#10b981'
         };
     }
   };
@@ -64,11 +79,12 @@ export default function AlertPanel({
       style={{
         background: config.bg,
         border: `1px solid ${config.border}`,
-        borderRadius: '12px',
+        borderLeft: `4px solid ${config.accentBorder}`,
+        borderRadius: '10px',
         padding: '1.15rem 1.35rem',
         marginBottom: '1.25rem',
-        boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 0 30px rgba(239, 68, 68, 0.35)' : '0 4px 20px rgba(0,0,0,0.25)',
-        backdropFilter: 'blur(10px)',
+        boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 8px 30px rgba(244, 63, 94, 0.18)' : '0 4px 20px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(16px)',
         transition: 'all 0.3s ease'
       }}
     >
@@ -121,17 +137,17 @@ export default function AlertPanel({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.35rem',
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                color: '#ffffff',
-                padding: '0.35rem 0.75rem',
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#e2e8f0',
+                padding: '0.4rem 0.8rem',
                 borderRadius: '6px',
                 fontSize: '0.75rem',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
-              <IndianRupee size={13} />
+              <IndianRupee size={13} color="#94a3b8" />
               Simulate Banking Transfer
             </button>
 
@@ -143,17 +159,18 @@ export default function AlertPanel({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.35rem',
-                    background: '#ffffff',
-                    border: 'none',
-                    color: '#0f172a',
-                    padding: '0.35rem 0.75rem',
+                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                    border: '1px solid rgba(129, 140, 248, 0.4)',
+                    color: '#ffffff',
+                    padding: '0.4rem 0.85rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
-                    fontWeight: 700,
-                    cursor: 'pointer'
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                   }}
                 >
-                  <KeyRound size={13} color="#0f172a" />
+                  <KeyRound size={13} color="#ffffff" />
                   Trigger Step-Up MFA
                 </button>
 
@@ -163,17 +180,17 @@ export default function AlertPanel({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.35rem',
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: '#ffffff',
-                    padding: '0.35rem 0.75rem',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    color: '#e2e8f0',
+                    padding: '0.4rem 0.8rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer'
                   }}
                 >
-                  <PhoneForwarded size={13} />
+                  <PhoneForwarded size={13} color="#94a3b8" />
                   Dial Registered PBX
                 </button>
               </>

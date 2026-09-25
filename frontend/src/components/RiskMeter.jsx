@@ -13,7 +13,7 @@ export default function RiskMeter({
   isStreamActive = false
 }) {
   const getTierColor = (tier) => {
-    if (!isStreamActive) return '#06b6d4';
+    if (!isStreamActive) return '#818cf8';
     switch (tier) {
       case 'CRITICAL': return '#f43f5e';
       case 'HIGH': return '#f97316';
@@ -27,18 +27,19 @@ export default function RiskMeter({
   return (
     <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Activity size={18} color="var(--accent-cyan)" />
+        <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.01em' }}>
+          <Activity size={17} color="#818cf8" />
           Unified Voice Threat Telemetry
         </h3>
         <span style={{
-          padding: '0.25rem 0.75rem',
-          borderRadius: '6px',
-          fontWeight: 800,
-          fontSize: '0.75rem',
-          backgroundColor: isStreamActive ? `${tierColor}20` : 'rgba(6, 182, 212, 0.15)',
-          color: isStreamActive ? tierColor : '#38bdf8',
-          border: `1px solid ${isStreamActive ? `${tierColor}50` : 'rgba(6, 182, 212, 0.3)'}`
+          padding: '0.2rem 0.65rem',
+          borderRadius: '9999px',
+          fontWeight: 700,
+          fontSize: '0.7rem',
+          letterSpacing: '0.04em',
+          backgroundColor: isStreamActive ? `${tierColor}15` : 'rgba(99, 102, 241, 0.1)',
+          color: isStreamActive ? tierColor : '#a5b4fc',
+          border: `1px solid ${isStreamActive ? `${tierColor}35` : 'rgba(99, 102, 241, 0.25)'}`
         }}>
           {isStreamActive ? `${threatTier} THREAT` : 'STANDBY (AWAITING AUDIO)'}
         </span>
@@ -47,33 +48,33 @@ export default function RiskMeter({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
         {/* Overall Fused Risk */}
         <div style={{
-          background: '#0d1322',
-          border: `1px solid ${tierColor}50`,
+          background: 'rgba(15, 23, 42, 0.75)',
+          border: `1px solid ${isStreamActive ? `${tierColor}40` : 'rgba(99, 102, 241, 0.25)'}`,
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center',
-          boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 0 15px rgba(244, 63, 94, 0.2)' : 'none'
+          boxShadow: isStreamActive && threatTier === 'CRITICAL' ? '0 0 20px rgba(244, 63, 94, 0.2)' : 'none'
         }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600, marginBottom: '0.2rem' }}>
             Overall Fused Risk
           </div>
           <div style={{
-            fontSize: '2.4rem',
+            fontSize: '2.2rem',
             fontWeight: 800,
-            color: isStreamActive ? tierColor : '#38bdf8',
+            color: isStreamActive ? tierColor : '#a5b4fc',
             fontFamily: 'JetBrains Mono',
             letterSpacing: '-0.03em'
           }}>
             {isStreamActive ? Math.round(overallRisk) : 0}
-            <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-              {isStreamActive ? '/100' : ' / 100 (STANDBY)'}
+            <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+              {isStreamActive ? '/100' : ' / 100'}
             </span>
           </div>
           <div style={{
             marginTop: '0.4rem',
             width: '100%',
-            height: '6px',
-            backgroundColor: '#1f2937',
+            height: '5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderRadius: '3px',
             overflow: 'hidden'
           }}>
@@ -88,20 +89,20 @@ export default function RiskMeter({
 
         {/* Voice Authenticity (Wav2Vec2 + Spectral) */}
         <div style={{
-          background: '#0d1322',
-          border: '1px solid var(--border-card)',
+          background: 'rgba(15, 23, 42, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.07)',
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
-            <Cpu size={14} color="#06b6d4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600, marginBottom: '0.2rem' }}>
+            <Cpu size={13} color="#818cf8" />
             Synthetic Voice (AI)
           </div>
           <div style={{
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 700,
-            color: '#06b6d4',
+            color: '#818cf8',
             fontFamily: 'JetBrains Mono'
           }}>
             {isStreamActive ? `${Math.round(syntheticRisk)}%` : '--%'}
@@ -109,15 +110,15 @@ export default function RiskMeter({
           <div style={{
             marginTop: '0.4rem',
             width: '100%',
-            height: '6px',
-            backgroundColor: '#1f2937',
+            height: '5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderRadius: '3px',
             overflow: 'hidden'
           }}>
             <div style={{
               width: `${isStreamActive ? Math.min(100, Math.max(0, syntheticRisk)) : 0}%`,
               height: '100%',
-              backgroundColor: '#06b6d4',
+              backgroundColor: '#818cf8',
               transition: 'width 0.3s ease'
             }} />
           </div>
@@ -125,18 +126,18 @@ export default function RiskMeter({
 
         {/* Spectral & Phase Inconsistency */}
         <div style={{
-          background: '#0d1322',
-          border: '1px solid var(--border-card)',
+          background: 'rgba(15, 23, 42, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.07)',
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
-            <Waves size={14} color="#38bdf8" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600, marginBottom: '0.2rem' }}>
+            <Waves size={13} color="#38bdf8" />
             Spectral & Phase
           </div>
           <div style={{
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 700,
             color: '#38bdf8',
             fontFamily: 'JetBrains Mono'
@@ -146,8 +147,8 @@ export default function RiskMeter({
           <div style={{
             marginTop: '0.4rem',
             width: '100%',
-            height: '6px',
-            backgroundColor: '#1f2937',
+            height: '5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderRadius: '3px',
             overflow: 'hidden'
           }}>
@@ -162,20 +163,20 @@ export default function RiskMeter({
 
         {/* Speaker Biometric Match */}
         <div style={{
-          background: '#0d1322',
-          border: '1px solid var(--border-card)',
+          background: 'rgba(15, 23, 42, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.07)',
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
-            <UserCheck size={14} color={!isStreamActive ? '#9ca3af' : (speakerSimilarity >= 60 ? '#10b981' : '#f43f5e')} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600, marginBottom: '0.2rem' }}>
+            <UserCheck size={13} color={!isStreamActive ? '#94a3b8' : (speakerSimilarity >= 60 ? '#34d399' : '#f43f5e')} />
             Speaker Profile Match
           </div>
           <div style={{
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 700,
-            color: !isStreamActive ? '#9ca3af' : (speakerSimilarity >= 60 ? '#10b981' : '#f43f5e'),
+            color: !isStreamActive ? '#94a3b8' : (speakerSimilarity >= 60 ? '#34d399' : '#f43f5e'),
             fontFamily: 'JetBrains Mono'
           }}>
             {isStreamActive ? `${Math.round(speakerSimilarity)}%` : '--%'}
@@ -183,15 +184,15 @@ export default function RiskMeter({
           <div style={{
             marginTop: '0.4rem',
             width: '100%',
-            height: '6px',
-            backgroundColor: '#1f2937',
+            height: '5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderRadius: '3px',
             overflow: 'hidden'
           }}>
             <div style={{
               width: `${isStreamActive ? Math.min(100, Math.max(0, speakerSimilarity)) : 0}%`,
               height: '100%',
-              backgroundColor: speakerSimilarity >= 60 ? '#10b981' : '#f43f5e',
+              backgroundColor: speakerSimilarity >= 60 ? '#34d399' : '#f43f5e',
               transition: 'width 0.3s ease'
             }} />
           </div>
@@ -199,20 +200,20 @@ export default function RiskMeter({
 
         {/* Context & Scam Triggers */}
         <div style={{
-          background: '#0d1322',
-          border: '1px solid var(--border-card)',
+          background: 'rgba(15, 23, 42, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.07)',
           borderRadius: '10px',
           padding: '1rem',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
-            <ShieldAlert size={14} color="#f59e0b" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', fontWeight: 600, marginBottom: '0.2rem' }}>
+            <ShieldAlert size={13} color="#fbbf24" />
             Scam / Context Stakes
           </div>
           <div style={{
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 700,
-            color: '#f59e0b',
+            color: '#fbbf24',
             fontFamily: 'JetBrains Mono'
           }}>
             {isStreamActive ? `${Math.round(Math.max(contextRisk, scamRisk))}%` : '--%'}
@@ -220,15 +221,15 @@ export default function RiskMeter({
           <div style={{
             marginTop: '0.4rem',
             width: '100%',
-            height: '6px',
-            backgroundColor: '#1f2937',
+            height: '5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderRadius: '3px',
             overflow: 'hidden'
           }}>
             <div style={{
               width: `${Math.min(100, Math.max(0, Math.max(contextRisk, scamRisk)))}%`,
               height: '100%',
-              backgroundColor: '#f59e0b',
+              backgroundColor: '#fbbf24',
               transition: 'width 0.3s ease'
             }} />
           </div>

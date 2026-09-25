@@ -89,41 +89,43 @@ export default function DemoController({
             <div
               key={sc.id}
               style={{
-                background: isActive ? 'rgba(6, 182, 212, 0.12)' : '#0d1322',
-                border: `1px solid ${isActive ? '#06b6d4' : 'var(--border-card)'}`,
+                background: isActive ? 'rgba(99, 102, 241, 0.08)' : 'rgba(15, 23, 42, 0.55)',
+                border: `1px solid ${isActive ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255, 255, 255, 0.07)'}`,
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                boxShadow: isActive ? '0 4px 20px rgba(99, 102, 241, 0.15)' : 'none'
               }}
             >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
                   <span style={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.68rem',
                     fontWeight: 700,
+                    letterSpacing: '0.04em',
                     padding: '0.15rem 0.5rem',
                     borderRadius: '4px',
-                    backgroundColor: `${sc.color}20`,
+                    backgroundColor: `${sc.color}15`,
                     color: sc.color,
-                    border: `1px solid ${sc.color}40`
+                    border: `1px solid ${sc.color}35`
                   }}>
                     {sc.badge}
                   </span>
                   {sc.icon}
                 </div>
 
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem', color: '#f9fafb' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 600, marginBottom: '0.35rem', color: '#f8fafc' }}>
                   {sc.title}
                 </div>
 
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.35 }}>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '0.65rem', lineHeight: 1.4 }}>
                   {sc.desc}
                 </div>
 
-                <div style={{ fontSize: '0.7rem', fontFamily: 'JetBrains Mono', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.68rem', fontFamily: 'JetBrains Mono', color: 'var(--text-muted)', marginBottom: '0.85rem' }}>
                   Target: {sc.expected}
                 </div>
               </div>
@@ -135,18 +137,19 @@ export default function DemoController({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.4rem',
-                  background: isActive ? '#ef4444' : '#1f2937',
+                  background: isActive ? '#ef4444' : 'rgba(255, 255, 255, 0.06)',
                   color: '#ffffff',
-                  border: '1px solid var(--border-card)',
-                  padding: '0.5rem',
+                  border: `1px solid ${isActive ? '#f87171' : 'rgba(255, 255, 255, 0.1)'}`,
+                  padding: '0.45rem',
                   borderRadius: '6px',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  width: '100%'
+                  width: '100%',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {isActive ? <Square size={13} /> : <Play size={13} />}
+                {isActive ? <Square size={12} /> : <Play size={12} />}
                 {isActive ? 'Playing Scenario...' : 'Run Scenario'}
               </button>
             </div>
