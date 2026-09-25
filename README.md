@@ -1,14 +1,3 @@
----
-title: SwarSatya Voice SOC
-emoji: 🛡️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 4.44.1
-app_file: app.py
-pinned: false
----
-
 # 🛡️ SwarSatya (स्वर सत्य) — Real-Time Voice Impersonation & Clone Defense Framework
 
 [![SIH Problem Statement](https://img.shields.io/badge/SIH%202026-Problem%20%2326104-06b6d4?style=for-the-badge)](https://www.sih.gov.in/)
