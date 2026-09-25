@@ -15,6 +15,7 @@ import ScamCopilotCard from './components/ScamCopilotCard.jsx';
 import LegalHelpdesk from './components/LegalHelpdesk.jsx';
 import FeedbackForum from './components/FeedbackForum.jsx';
 import { BACKEND_URL, getWsUrl, CLOUD_BACKEND_URL } from './config.js';
+import { STATIC_DEMO_SCENARIOS } from './data/staticDemoData.js';
 
 export default function App() {
   const [roomId, setRoomId] = useState('satya-room-1');
@@ -105,6 +106,8 @@ export default function App() {
   const signalingHandlerRef = useRef(null);
   const pendingDemoRef = useRef(null);
   const demoAudioRef = useRef(null);
+  const demoTimersRef = useRef([]);
+  const activeDemoScenarioRef = useRef(null);
 
   // WebSocket Connection
   const connectWebSocket = () => {
@@ -135,6 +138,9 @@ export default function App() {
           const data = JSON.parse(event.data);
 
           if (data.type === 'risk_update') {
+            if (activeDemoScenarioRef.current && data.source_type === 'demo') {
+              return;
+            }
             setIsStreamActive(true);
             setOverallRisk(data.overall_risk || 0);
             setThreatTier(data.threat_tier || 'LOW');
@@ -271,9 +277,13 @@ export default function App() {
     }
   };
 
-  // Demo Trigger Handlers
+  // Demo Trigger Handlers (Deterministic High-Fidelity Hindi Simulation)
   const handleStartDemo = (scenarioId) => {
-    // Play voice audio aloud through speakers for screen recording & demo clarity
+    // 1. Clear any active demo timers
+    demoTimersRef.current.forEach(clearTimeout);
+    demoTimersRef.current = [];
+
+    // 2. Play voice audio aloud through speakers for screen recording & demo clarity
     if (demoAudioRef.current) {
       demoAudioRef.current.pause();
       demoAudioRef.current.currentTime = 0;
@@ -292,43 +302,112 @@ export default function App() {
     setDetectedPatterns([]);
     setRiskHistory([]);
     setActiveDemoScenario(scenarioId);
+    activeDemoScenarioRef.current = scenarioId;
     setIsPlayingDemo(true);
     setIsStreamActive(true);
+    setLastLatencyMs(380);
 
-    const payload = {
-      type: 'start_demo',
-      room_id: roomId,
-      scenario: scenarioId
-    };
+    const scenarioData = STATIC_DEMO_SCENARIOS[scenarioId];
+    if (scenarioData) {
+      if (scenarioData.caller_number) setCallerNumber(scenarioData.caller_number);
+      if (scenarioData.claimed_identity) setClaimedIdentity(scenarioData.claimed_identity);
+      if (scenarioData.transaction_amount !== undefined) setTransactionAmount(scenarioData.transaction_amount);
+      setDetectedLanguage('Hindi (hi-IN)');
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(payload));
-      addLog('SENT', `Triggered Demo Mode: ${scenarioId}`);
-    } else {
-      pendingDemoRef.current = payload;
-      connectWebSocket();
-      addLog('SYSTEM', `Reconnecting WebSocket and queueing demo: ${scenarioId}`);
+      let accumulatedText = '';
+
+      scenarioData.steps.forEach((step, index) => {
+        const timerId = setTimeout(() => {
+          accumulatedText = accumulatedText ? `${accumulatedText} ${step.text}` : step.text;
+          setTranscript(accumulatedText);
+          setOverallRisk(step.overall_risk);
+          setThreatTier(step.threat_tier);
+          setActionCode(step.action_code);
+          setRecommendedAction(step.recommended_action);
+          setRequiresHold(step.requires_hold);
+          setTransactionHeld(step.transaction_held);
+          if (step.active_incident_id) setActiveIncidentId(step.active_incident_id);
+
+          setSyntheticRisk(step.synthetic_risk);
+          setSpectralRisk(step.spectral_risk);
+          setProsodyRisk(step.prosody_risk);
+          setSpeakerSimilarity(step.speaker_similarity);
+          setContextRisk(step.context_risk);
+          setScamRisk(step.scam_risk);
+
+          setLayerBreakdown({
+            synthetic_model: step.synthetic_risk,
+            spectral_phase: step.spectral_risk,
+            prosody_behavior: step.prosody_risk,
+            speaker_mismatch: Math.max(0, 100 - step.speaker_similarity),
+            context_stakes: step.context_risk,
+            conversational_scam: step.scam_risk
+          });
+
+          if (step.patterns) {
+            setDetectedPatterns(step.patterns);
+          }
+          if (step.telemetry) {
+            setTelemetry((prev) => ({
+              ...prev,
+              ...step.telemetry
+            }));
+          }
+          if (step.copilot) {
+            setDefenseCopilot(step.copilot);
+          }
+
+          setRiskHistory((prev) => [
+            ...prev,
+            {
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+              overall: step.overall_risk,
+              synthetic: step.synthetic_risk,
+              scam: step.scam_risk
+            }
+          ]);
+
+          addLog('RISK', `Update: Overall=${step.overall_risk} (${step.threat_tier}) | Policy: ${step.action_code}`);
+
+          // Final step scheduling
+          if (index === scenarioData.steps.length - 1) {
+            const completionTimer = setTimeout(() => {
+              setIsPlayingDemo(false);
+              setActiveDemoScenario(null);
+              activeDemoScenarioRef.current = null;
+              addLog('SYSTEM', `Demo playback finished.`);
+            }, 4500);
+            demoTimersRef.current.push(completionTimer);
+          }
+        }, step.timeMs);
+
+        demoTimersRef.current.push(timerId);
+      });
     }
+
+    addLog('SENT', `Triggered Demo Mode: ${scenarioId}`);
   };
 
   const handleStopDemo = () => {
+    demoTimersRef.current.forEach(clearTimeout);
+    demoTimersRef.current = [];
+
     if (demoAudioRef.current) {
       demoAudioRef.current.pause();
       demoAudioRef.current.currentTime = 0;
       demoAudioRef.current = null;
     }
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'stop_demo',
-        room_id: roomId
-      }));
-    }
     setIsPlayingDemo(false);
     setActiveDemoScenario(null);
+    activeDemoScenarioRef.current = null;
     setIsStreamActive(false);
+    addLog('SYSTEM', 'Demo playback stopped.');
   };
 
   const resetMetrics = () => {
+    demoTimersRef.current.forEach(clearTimeout);
+    demoTimersRef.current = [];
+
     if (demoAudioRef.current) {
       demoAudioRef.current.pause();
       demoAudioRef.current.currentTime = 0;
@@ -336,6 +415,7 @@ export default function App() {
     }
     setIsPlayingDemo(false);
     setActiveDemoScenario(null);
+    activeDemoScenarioRef.current = null;
     setIsStreamActive(false);
     setSyntheticRisk(0);
     setSpectralRisk(0);
